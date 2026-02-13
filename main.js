@@ -387,10 +387,15 @@ function getLandmarkMetrics(landmarks, frame) {
   const eyeDistance = distance(leftEyeOuter, rightEyeOuter);
   const mouthWidth = distance(mouthLeft, mouthRight);
   const mouthOpen = distance(mouthTop, mouthBottom);
+  const mouthCenter = {
+    x: (mouthTop.x + mouthBottom.x) / 2,
+    y: (mouthTop.y + mouthBottom.y) / 2,
+  };
 
   const browCenterY = (browLeft.y + browRight.y) / 2;
   const eyeCenterY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
   const centerX = (leftCheek.x + rightCheek.x) / 2;
+  const lowerFace = distance(mouthCenter, chin);
 
   return {
     width: frame.width,
@@ -399,9 +404,53 @@ function getLandmarkMetrics(landmarks, frame) {
     eyeRatio: faceWidth > 0 ? eyeDistance / faceWidth : 0,
     mouthRatio: faceWidth > 0 ? mouthWidth / faceWidth : 0,
     mouthOpenRatio: faceHeight > 0 ? mouthOpen / faceHeight : 0,
+    lowerFaceRatio: faceHeight > 0 ? lowerFace / faceHeight : 0,
     browEyeRatio: faceHeight > 0 ? Math.abs(eyeCenterY - browCenterY) / faceHeight : 0,
     symmetryOffset: faceWidth > 0 ? Math.abs(noseTip.x - centerX) / faceWidth : 0,
   };
+}
+
+function buildTraditionalBasis(analysis) {
+  if (analysis.mode !== "mediapipe") {
+    return [
+      "얼굴 랜드마크 인식이 불가해 밝기/색상 기반 보조 규칙으로 결과를 생성했습니다.",
+    ];
+  }
+
+  const m = analysis.metrics;
+  const basis = [];
+
+  if (m.faceRatio >= 0.95) {
+    basis.push("삼정 비율에서 중정-하정 흐름이 상대적으로 길게 잡혀 추진/실행 성향 가중치를 높였습니다.");
+  } else {
+    basis.push("삼정 비율에서 상정-중정 집중도가 상대적으로 높아 기획/집중 성향 가중치를 높였습니다.");
+  }
+
+  if (m.eyeRatio >= 0.29) {
+    basis.push("오관 중 눈 간격 비율이 넓은 축으로 분류되어 개방/에너지 지표를 상향했습니다.");
+  } else {
+    basis.push("오관 중 눈 간격 비율이 안정 축으로 분류되어 신중/집중 지표를 상향했습니다.");
+  }
+
+  if (m.mouthRatio >= 0.34) {
+    basis.push("오관 중 입 비율이 넓은 축으로 분류되어 표현/사교 지표를 상향했습니다.");
+  } else {
+    basis.push("오관 중 입 비율이 절제 축으로 분류되어 안정/집중 지표를 상향했습니다.");
+  }
+
+  if (m.symmetryOffset <= 0.085) {
+    basis.push("중심축 대칭 오프셋이 낮아 안정성(균형) 가중치를 추가했습니다.");
+  } else {
+    basis.push("중심축 오프셋이 큰 편이라 변화 대응(유연) 가중치를 추가했습니다.");
+  }
+
+  if (m.lowerFaceRatio >= 0.29) {
+    basis.push("하정 비율이 비교적 큰 편으로 분류되어 실행/행동 계열 문구를 우선 배치했습니다.");
+  } else {
+    basis.push("하정 비율이 비교적 절제된 편으로 분류되어 신중/조율 계열 문구를 우선 배치했습니다.");
+  }
+
+  return basis;
 }
 
 function traitsFromMediapipe(metrics, blendshapeCategory) {
@@ -457,6 +506,7 @@ function buildResultHTML(result, analysis) {
     : "룰 기반 폴백 엔진";
 
   const traitsText = `에너지 ${Math.round(analysis.traits.energy * 100)} / 사교성 ${Math.round(analysis.traits.social * 100)} / 집중 ${Math.round(analysis.traits.focus * 100)} / 안정 ${Math.round(analysis.traits.calm * 100)} / 창의 ${Math.round(analysis.traits.creative * 100)}`;
+  const basisText = buildTraditionalBasis(analysis).join("<br>");
 
   return `
     <h3>${result.title}</h3>
@@ -466,6 +516,7 @@ function buildResultHTML(result, analysis) {
     <p class="tips">분석 모드: ${modeText}</p>
     <p class="tips">특성 벡터: ${traitsText}</p>
     <p class="tips">측정 정보: ${metricText}</p>
+    <p class="tips">해석 기준(오락용):<br>${basisText}</p>
   `;
 }
 
