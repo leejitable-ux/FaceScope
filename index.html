@@ -11,31 +11,20 @@
   <div class="background-glow" aria-hidden="true"></div>
   <main class="app-shell">
     <header class="hero">
-      <p class="eyebrow">FaceScope MVP</p>
-      <h1>관상 재미 테스트</h1>
-      <p class="lead">
-        카메라 화면을 기반으로 오락용 결과를 제공합니다.
-        의료/채용/법률/재정 판단 용도로 사용하지 마세요.
-      </p>
+      <p class="eyebrow">FaceScope</p>
+      <h1>AI 관상 · 손금 테스트</h1>
     </header>
 
-    <section class="notice-card">
-      <h2>중요 안내</h2>
-      <ul>
-        <li>본 서비스는 오락/참고용입니다.</li>
-        <li>의학적 진단, 심리 판정, 인사 평가 목적으로 사용할 수 없습니다.</li>
-        <li>얼굴 데이터는 기본적으로 브라우저 로컬에서 처리되며, 서버로 업로드/저장하지 않습니다.</li>
-      </ul>
-    </section>
-
     <section id="landing-view" class="panel active">
-      <div class="landing-copy">
-        <h2>시작하기</h2>
-        <p>원하는 테스트를 선택하면 카메라가 켜지고 자동으로 분석이 진행됩니다.</p>
-      </div>
-      <div class="landing-actions">
-        <button id="start-face-btn" class="btn btn-primary" type="button">관상 보기</button>
-        <button id="start-palm-btn" class="btn btn-secondary" type="button">손금 보기</button>
+      <div class="landing-stage">
+        <div class="landing-copy">
+          <h2>테스트 선택</h2>
+          <p>카메라 권한 허용 후 자동으로 분석이 진행됩니다.</p>
+          <div class="landing-actions">
+            <button id="start-face-btn" class="btn btn-primary" type="button">관상 테스트</button>
+            <button id="start-palm-btn" class="btn btn-secondary" type="button">손금 테스트</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -46,6 +35,7 @@
         <div id="video-overlay" class="video-overlay">카메라 권한을 허용해주세요.</div>
         <div id="analysis-overlay" class="analysis-overlay hidden" aria-live="polite">
           <div class="analysis-card">
+            <div class="analysis-loader" aria-hidden="true"></div>
             <p class="analysis-title">분석중입니다</p>
             <p id="analysis-step" class="analysis-step">얼굴 특징 포인트를 수집하고 있습니다.</p>
             <div class="analysis-progress" aria-hidden="true">
@@ -66,8 +56,8 @@
 
     <section id="result-view" class="panel" aria-live="polite">
       <div class="result-head">
-        <h2>테스트 결과</h2>
-        <p>아래 결과는 재미 요소 중심의 안내 카드입니다.</p>
+        <h2>분석 결과 리포트</h2>
+        <p>AI 시뮬레이션 기반 오락용 결과입니다.</p>
       </div>
 
       <article id="result-card" class="result-card"></article>

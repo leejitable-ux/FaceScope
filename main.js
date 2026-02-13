@@ -582,11 +582,11 @@ function buildFaceResultHTML(result, analysis) {
     </div>
     <p>${result.description}</p>
     <div class="part-readout">
-      <p>${parts.eye}</p>
-      <p>${parts.nose}</p>
-      <p>${parts.mouth}</p>
-      <p>${parts.brow}</p>
-      <p>${parts.face}</p>
+      <p><strong>눈</strong> ${parts.eye.replace("눈:", "").trim()}</p>
+      <p><strong>코</strong> ${parts.nose.replace("코:", "").trim()}</p>
+      <p><strong>입</strong> ${parts.mouth.replace("입:", "").trim()}</p>
+      <p><strong>눈썹</strong> ${parts.brow.replace("눈썹:", "").trim()}</p>
+      <p><strong>얼굴형</strong> ${parts.face.replace("얼굴형:", "").trim()}</p>
       <p class="part-summary">${parts.summary}</p>
     </div>
     <p class="tips">${result.tips}</p>
@@ -610,9 +610,9 @@ function buildPalmResultHTML(result) {
     </div>
     <p>${result.description}</p>
     <div class="part-readout">
-      <p>손바닥 윤곽: 전체 대비 흐름을 기준으로 균형/개방 패턴을 분류했습니다.</p>
-      <p>주요 선 대비: 화면 대비(명암)와 결 방향을 오락용 규칙으로 계산했습니다.</p>
-      <p>선의 연결감: 끊김/연결 느낌을 보조 지표로 반영했습니다.</p>
+      <p><strong>손바닥 윤곽</strong> 균형/개방 패턴 중심으로 분류했습니다.</p>
+      <p><strong>주요 선 대비</strong> 명암 대비와 결 방향을 규칙 엔진으로 계산했습니다.</p>
+      <p><strong>선의 연결감</strong> 끊김보다 연결 흐름 여부를 보조 지표로 반영했습니다.</p>
       <p class="part-summary">그래서 현재는 ${result.title} 흐름이 강조되는 타입으로 해석됩니다.</p>
     </div>
     <p class="tips">${result.tips}</p>
@@ -642,18 +642,20 @@ function analyzePalmFrame() {
 
 async function playAnalysisSequence(type) {
   const faceSteps = [
-    { text: "관상 포인트(눈·코·입)를 정합하고 있습니다.", progress: 24 },
-    { text: "삼정 비율과 중심축 안정도를 계산 중입니다.", progress: 58 },
-    { text: "관상 유형 결과를 생성 중입니다.", progress: 92 },
+    { text: "얼굴 라인과 포인트를 인식하고 있습니다.", progress: 21 },
+    { text: "눈·코·입 비율을 비교 분석하고 있습니다.", progress: 47 },
+    { text: "관상 특징값을 정리하고 있습니다.", progress: 74 },
+    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 95 },
   ];
   const palmSteps = [
-    { text: "손바닥 윤곽과 선 패턴을 인식 중입니다.", progress: 28 },
-    { text: "손금 흐름(생명/지능/감정 축)을 분석 중입니다.", progress: 64 },
-    { text: "손금 유형 결과를 생성 중입니다.", progress: 94 },
+    { text: "손바닥 윤곽과 선 패턴을 인식하고 있습니다.", progress: 24 },
+    { text: "생명·지능·감정선 흐름을 분석하고 있습니다.", progress: 54 },
+    { text: "손금 특징값을 정리하고 있습니다.", progress: 78 },
+    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 95 },
   ];
 
   const steps = type === "palm" ? palmSteps : faceSteps;
-  const stepDelay = DEVICE.name === "mobile" ? 380 : 300;
+  const stepDelay = DEVICE.name === "mobile" ? 430 : 360;
 
   setAnalysisOverlay(true, type === "palm" ? "손금을 분석중입니다." : "관상을 분석중입니다.", 8);
   for (const step of steps) {
