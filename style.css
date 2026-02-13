@@ -33,9 +33,23 @@ body {
 
 .app-shell {
   position: relative;
-  max-width: 980px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 28px 20px 56px;
+}
+
+.hero,
+.notice-card,
+.panel,
+.privacy-card {
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero {
+  text-align: center;
 }
 
 .hero h1 {
@@ -62,6 +76,9 @@ body {
   color: var(--muted);
   font-size: 1.02rem;
   line-height: 1.5;
+  max-width: 58ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .notice-card,
@@ -87,10 +104,12 @@ body {
 }
 
 .notice-card ul {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 62ch;
   padding-left: 18px;
   color: var(--muted);
   line-height: 1.5;
+  text-align: left;
 }
 
 .panel {
@@ -239,6 +258,7 @@ video {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .btn {
@@ -269,11 +289,13 @@ video {
   margin: 12px 0 0;
   color: var(--muted);
   font-size: 0.94rem;
+  text-align: center;
 }
 
 .engine-badge {
-  margin: 8px 0 0;
-  display: inline-block;
+  margin: 8px auto 0;
+  display: block;
+  width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.82rem;
@@ -288,33 +310,41 @@ video {
 }
 
 .result-head p {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 60ch;
   color: var(--muted);
+  text-align: center;
 }
 
 .result-card {
   margin-top: 14px;
-  padding: 16px;
+  padding: 20px;
   border: 1px dashed var(--line);
   border-radius: 14px;
   background: #fffdf9;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .result-card h3 {
   margin: 0 0 8px;
   font-size: 1.24rem;
+  text-align: center;
 }
 
 .result-card .tone {
   margin: 0;
   font-weight: 700;
   color: var(--accent);
+  text-align: center;
 }
 
 .result-card p {
   margin: 10px 0 0;
   color: #3f3b34;
   line-height: 1.55;
+  text-align: center;
 }
 
 .result-card .tips {
@@ -327,14 +357,14 @@ video {
 
 .result-card .result-hero {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 12px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  justify-items: center;
 }
 
 .result-card .result-portrait {
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   border-radius: 14px;
   border: 1px solid var(--line);
   object-fit: cover;
@@ -353,17 +383,22 @@ video {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed var(--line);
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .result-card .part-readout p {
   margin: 8px 0 0;
   font-size: 0.94rem;
+  text-align: left;
 }
 
 .result-card .part-readout .part-summary {
   margin-top: 12px;
   font-weight: 700;
   color: #4a2a14;
+  text-align: left;
 }
 
 @media (max-width: 720px) {
@@ -381,7 +416,7 @@ video {
 
   .result-card .result-portrait {
     width: 100%;
-    max-width: 180px;
+    max-width: 170px;
     height: auto;
     aspect-ratio: 1 / 1;
   }
