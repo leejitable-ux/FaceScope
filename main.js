@@ -758,38 +758,21 @@ function selectResultByTraits(traits, seedNumber) {
   return RESULT_LIBRARY.find((x) => x.id === bestId) || RESULT_LIBRARY[0];
 }
 
-const ARCHETYPE_ART = {
-  "sunrise-strategy": { bg: "#fde68a", face: "#fef3c7", badge: "RY", accent: "#92400e" },
-  "warm-navigator": { bg: "#fed7aa", face: "#ffedd5", badge: "IN", accent: "#9a3412" },
-  "spark-initiator": { bg: "#fecaca", face: "#fee2e2", badge: "JG", accent: "#991b1b" },
-  "steady-crafter": { bg: "#dbeafe", face: "#eff6ff", badge: "MC", accent: "#1e3a8a" },
-  "lively-connector": { bg: "#fbcfe8", face: "#fdf2f8", badge: "BA", accent: "#9d174d" },
-  "deep-diver": { bg: "#ddd6fe", face: "#f5f3ff", badge: "HS", accent: "#5b21b6" },
-  "calm-anchor": { bg: "#bbf7d0", face: "#f0fdf4", badge: "JS", accent: "#166534" },
-  "creative-mixer": { bg: "#fde68a", face: "#fffbeb", badge: "YA", accent: "#a16207" },
-  "bold-explorer": { bg: "#fecdd3", face: "#fff1f2", badge: "HA", accent: "#9f1239" },
-  "balanced-director": { bg: "#bfdbfe", face: "#eff6ff", badge: "JB", accent: "#1d4ed8" },
+const ARCHETYPE_IMAGE_MAP = {
+  "sunrise-strategy": "/assets/archetypes/yongan.svg",
+  "warm-navigator": "/assets/archetypes/guiin.svg",
+  "spark-initiator": "/assets/archetypes/janggun.svg",
+  "steady-crafter": "/assets/archetypes/moonchang.svg",
+  "lively-connector": "/assets/archetypes/bongan.svg",
+  "deep-diver": "/assets/archetypes/hyeonsa.svg",
+  "calm-anchor": "/assets/archetypes/jangsu.svg",
+  "creative-mixer": "/assets/archetypes/yein.svg",
+  "bold-explorer": "/assets/archetypes/hoan.svg",
+  "balanced-director": "/assets/archetypes/jaebok.svg",
 };
 
 function getArchetypeImageSrc(resultId) {
-  const art = ARCHETYPE_ART[resultId] || ARCHETYPE_ART["sunrise-strategy"];
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'>
-    <defs>
-      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-        <stop offset='0%' stop-color='${art.bg}'/>
-        <stop offset='100%' stop-color='#ffffff'/>
-      </linearGradient>
-    </defs>
-    <rect width='280' height='280' rx='28' fill='url(#g)'/>
-    <circle cx='140' cy='120' r='64' fill='${art.face}'/>
-    <ellipse cx='114' cy='114' rx='8' ry='6' fill='${art.accent}'/>
-    <ellipse cx='166' cy='114' rx='8' ry='6' fill='${art.accent}'/>
-    <path d='M114 146 Q140 162 166 146' stroke='${art.accent}' stroke-width='5' fill='none' stroke-linecap='round'/>
-    <rect x='90' y='186' width='100' height='58' rx='22' fill='${art.face}'/>
-    <rect x='104' y='198' width='72' height='34' rx='16' fill='${art.accent}' opacity='0.18'/>
-    <text x='140' y='221' text-anchor='middle' font-size='22' font-weight='800' fill='${art.accent}' font-family='Arial, sans-serif'>${art.badge}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return ARCHETYPE_IMAGE_MAP[resultId] || "/assets/archetypes/yongan.svg";
 }
 
 function buildPartNarrative(analysis) {
