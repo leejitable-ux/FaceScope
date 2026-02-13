@@ -127,6 +127,19 @@ function setAnalysisOverlay(active, stepText = "", progress = 0) {
   }
 }
 
+function forceMirrorPreview() {
+  const targets = [els.camera, els.faceOverlay];
+  for (const el of targets) {
+    if (!el) {
+      continue;
+    }
+    el.style.transform = "scaleX(-1)";
+    el.style.webkitTransform = "scaleX(-1)";
+    el.style.transformOrigin = "center";
+    el.style.webkitTransformOrigin = "center";
+  }
+}
+
 function clamp01(v) {
   return Math.max(0, Math.min(1, v));
 }
@@ -317,6 +330,7 @@ async function startCamera() {
     state.lastInferTs = 0;
     els.camera.srcObject = stream;
     await waitForVideoReady();
+    forceMirrorPreview();
     runPreviewLoop();
 
     els.overlay.style.display = "none";
@@ -946,6 +960,7 @@ function attachEvents() {
 
 async function bootstrap() {
   attachEvents();
+  forceMirrorPreview();
   setStatus("대기 중");
   switchView("capture");
   await initAnalyzer();
