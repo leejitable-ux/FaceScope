@@ -782,29 +782,40 @@ function analyzePalmFrame() {
 }
 
 async function playAnalysisSequence(type) {
+  const startedAt = performance.now();
+  const minimumDurationMs = DEVICE.name === "mobile" ? 4200 : 3600;
   const faceSteps = [
-    { text: "얼굴 라인과 포인트를 인식하고 있습니다.", progress: 21 },
-    { text: "눈·코·입 비율을 비교 분석하고 있습니다.", progress: 47 },
-    { text: "관상 특징값을 정리하고 있습니다.", progress: 74 },
-    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 95 },
+    { text: "얼굴 라인과 포인트를 인식하고 있습니다.", progress: 16 },
+    { text: "눈·코·입 비율을 비교 분석하고 있습니다.", progress: 38 },
+    { text: "삼정/오관 특징값을 계산하고 있습니다.", progress: 62 },
+    { text: "유형 분류를 검증하고 있습니다.", progress: 84 },
+    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 96 },
   ];
   const palmSteps = [
-    { text: "손바닥 윤곽과 선 패턴을 인식하고 있습니다.", progress: 24 },
-    { text: "생명·지능·감정선 흐름을 분석하고 있습니다.", progress: 54 },
-    { text: "손금 특징값을 정리하고 있습니다.", progress: 78 },
-    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 95 },
+    { text: "손바닥 윤곽과 선 패턴을 인식하고 있습니다.", progress: 18 },
+    { text: "생명·지능·감정선 흐름을 분석하고 있습니다.", progress: 42 },
+    { text: "손금 특징값을 계산하고 있습니다.", progress: 66 },
+    { text: "유형 분류를 검증하고 있습니다.", progress: 86 },
+    { text: "전문가 해설 리포트를 생성하고 있습니다.", progress: 96 },
   ];
 
   const steps = type === "palm" ? palmSteps : faceSteps;
-  const stepDelay = DEVICE.name === "mobile" ? 430 : 360;
+  const stepDelay = DEVICE.name === "mobile" ? 620 : 520;
 
   setAnalysisOverlay(true, type === "palm" ? "손금을 분석중입니다." : "관상을 분석중입니다.", 8);
   for (const step of steps) {
     setAnalysisOverlay(true, step.text, step.progress);
     await sleep(stepDelay);
   }
+
+  const elapsed = performance.now() - startedAt;
+  if (elapsed < minimumDurationMs) {
+    setAnalysisOverlay(true, "정밀 검증을 진행하고 있습니다.", 98);
+    await sleep(minimumDurationMs - elapsed);
+  }
+
   setAnalysisOverlay(true, "결과를 정리하고 있습니다.", 100);
-  await sleep(DEVICE.name === "mobile" ? 260 : 180);
+  await sleep(DEVICE.name === "mobile" ? 420 : 320);
 }
 
 async function startExperience(type) {
