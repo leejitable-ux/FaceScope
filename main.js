@@ -88,6 +88,9 @@ const els = {
   resultCard: document.getElementById("result-card"),
   canvas: document.getElementById("snapshot-canvas"),
   faceOverlay: document.getElementById("face-overlay-canvas"),
+  analysisOverlay: document.getElementById("analysis-overlay"),
+  analysisStep: document.getElementById("analysis-step"),
+  analysisProgressFill: document.getElementById("analysis-progress-fill"),
 };
 
 function setStatus(text) {
@@ -103,6 +106,25 @@ function switchView(mode) {
   state.mode = mode;
   els.captureView.classList.toggle("active", mode === "capture");
   els.resultView.classList.toggle("active", mode === "result");
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function setAnalysisOverlay(active, stepText = "", progress = 0) {
+  if (!els.analysisOverlay) {
+    return;
+  }
+
+  els.analysisOverlay.classList.toggle("hidden", !active);
+  if (stepText && els.analysisStep) {
+    els.analysisStep.textContent = stepText;
+  }
+  if (els.analysisProgressFill) {
+    const clamped = Math.max(0, Math.min(100, progress));
+    els.analysisProgressFill.style.width = `${clamped}%`;
+  }
 }
 
 function clamp01(v) {
@@ -549,6 +571,39 @@ function buildCardSpecificBasis(resultId, analysis) {
   return catalog[resultId] || [];
 }
 
+function buildExpertReport(result, analysis) {
+  const entries = Object.entries(analysis.traits).sort((a, b) => b[1] - a[1]);
+  const traitLabel = {
+    energy: "추진력",
+    social: "관계성",
+    focus: "집중력",
+    calm: "안정감",
+    creative: "창의성",
+  };
+
+  const topKey = entries[0][0];
+  const secondKey = entries[1][0];
+  const lowKey = entries[entries.length - 1][0];
+
+  const lines = [];
+  lines.push(`핵심축은 ${traitLabel[topKey]} + ${traitLabel[secondKey]} 조합으로 해석됩니다.`);
+  lines.push(`보완축은 ${traitLabel[lowKey]}이며, 결과 카드(${result.title}) 해석 시 균형 포인트로 반영했습니다.`);
+
+  if (analysis.mode === "mediapipe") {
+    lines.push(analysis.metrics.symmetryOffset <= 0.085
+      ? "중심축 균형도가 안정 범위라 일관성 있는 판단 흐름으로 해석했습니다."
+      : "중심축 변동 폭이 보여 유연 대응형 판단 흐름으로 해석했습니다.");
+    lines.push(analysis.metrics.lowerFaceRatio >= 0.29
+      ? "하정 비율이 상대적으로 커 실행 전환 속도를 높게 평가했습니다."
+      : "하정 비율이 상대적으로 절제되어 신중 조율 성향을 높게 평가했습니다.");
+  } else {
+    lines.push("랜덤 텍스트가 아니라 밝기/색상 지표 기반 보조 규칙으로 리포트를 생성했습니다.");
+    lines.push("랜드마크 인식 가능 시 리포트 정확도와 근거 문장 수가 확장됩니다.");
+  }
+
+  return lines;
+}
+
 function traitsFromMediapipe(metrics, blendshapeCategory) {
   const smileScore = blendshapeCategory?.find((it) => it.categoryName === "mouthSmileLeft")?.score || 0;
   return {
@@ -604,6 +659,9 @@ function buildResultHTML(result, analysis) {
   const traitsText = `에너지 ${Math.round(analysis.traits.energy * 100)} / 사교성 ${Math.round(analysis.traits.social * 100)} / 집중 ${Math.round(analysis.traits.focus * 100)} / 안정 ${Math.round(analysis.traits.calm * 100)} / 창의 ${Math.round(analysis.traits.creative * 100)}`;
   const basisText = buildTraditionalBasis(analysis).join("<br>");
   const specificBasisText = buildCardSpecificBasis(result.id, analysis).join("<br>");
+  const expertReportText = buildExpertReport(result, analysis)
+    .map((line) => `<p>${line}</p>`)
+    .join("");
 
   return `
     <h3>${result.title}</h3>
@@ -615,6 +673,10 @@ function buildResultHTML(result, analysis) {
     <p class="tips">측정 정보: ${metricText}</p>
     <p class="tips">해석 기준(오락용):<br>${basisText}</p>
     <p class="tips">카드 전용 해석:<br>${specificBasisText}</p>
+    <section class="expert-report">
+      <h4>전문가 해설 리포트</h4>
+      ${expertReportText}
+    </section>
   `;
 }
 
@@ -664,6 +726,24 @@ function analyzeFrame() {
   return analyzeWithRuleFallback();
 }
 
+async function playAnalysisSequence() {
+  const steps = [
+    { text: "얼굴 윤곽 정합을 진행하고 있습니다.", progress: 18 },
+    { text: "오관(눈/코/입) 기준 포인트를 계산 중입니다.", progress: 44 },
+    { text: "삼정 비율과 중심축 안정도를 분석 중입니다.", progress: 72 },
+    { text: "결과 카드와 전문가 해설 리포트를 생성 중입니다.", progress: 96 },
+  ];
+
+  const stepDelay = DEVICE.name === "mobile" ? 360 : 280;
+  setAnalysisOverlay(true, steps[0].text, 6);
+  for (const step of steps) {
+    setAnalysisOverlay(true, step.text, step.progress);
+    await sleep(stepDelay);
+  }
+  setAnalysisOverlay(true, "최종 결과를 정리하고 있습니다.", 100);
+  await sleep(DEVICE.name === "mobile" ? 260 : 180);
+}
+
 async function runLocalAnalysis() {
   if (!state.hasCamera) {
     setStatus("먼저 카메라를 시작해주세요.");
@@ -674,6 +754,7 @@ async function runLocalAnalysis() {
   setStatus("분석 중...");
 
   try {
+    await playAnalysisSequence();
     const analysis = analyzeFrame();
     state.snapshotMetrics = analysis.metrics;
 
@@ -687,6 +768,7 @@ async function runLocalAnalysis() {
     setStatus("분석에 실패했습니다. 다시 시도해주세요.");
     console.error(err);
   } finally {
+    setAnalysisOverlay(false, "", 0);
     els.analyzeBtn.disabled = false;
   }
 }
@@ -694,6 +776,7 @@ async function runLocalAnalysis() {
 function resetToCapture() {
   switchView("capture");
   setStatus("대기 중");
+  setAnalysisOverlay(false, "", 0);
 }
 
 function attachEvents() {

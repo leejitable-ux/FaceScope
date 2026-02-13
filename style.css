@@ -129,6 +129,8 @@ video {
   height: 100%;
   object-fit: cover;
   display: block;
+  transform: scaleX(-1);
+  transform-origin: center;
 }
 
 .face-overlay-canvas {
@@ -137,6 +139,8 @@ video {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  transform: scaleX(-1);
+  transform-origin: center;
 }
 
 .video-overlay {
@@ -149,6 +153,85 @@ video {
   color: #fff;
   font-weight: 600;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56));
+}
+
+.analysis-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45));
+  backdrop-filter: blur(2px);
+  z-index: 5;
+}
+
+.analysis-overlay.hidden {
+  display: none;
+}
+
+.analysis-card {
+  width: min(88%, 420px);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(17, 24, 39, 0.68);
+  padding: 16px;
+}
+
+.analysis-title {
+  margin: 0;
+  color: #fef3c7;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.analysis-title::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: #f59e0b;
+  animation: analysis-pulse 900ms ease-in-out infinite;
+}
+
+.analysis-step {
+  margin: 8px 0 0;
+  color: #f9fafb;
+  font-size: 0.9rem;
+}
+
+.analysis-progress {
+  margin-top: 12px;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.analysis-progress span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  transition: width 220ms ease;
+}
+
+@keyframes analysis-pulse {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
 }
 
 .actions {
@@ -240,6 +323,24 @@ video {
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.93rem;
+}
+
+.result-card .expert-report {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.result-card .expert-report h4 {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+  color: #7c2d12;
+}
+
+.result-card .expert-report p {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: #4a3f32;
 }
 
 @media (max-width: 720px) {
