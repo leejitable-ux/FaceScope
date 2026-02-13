@@ -156,7 +156,11 @@ body.mode-landing .hero {
 }
 
 #landing-view.panel {
-  max-width: 560px;
+  max-width: 500px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border-color: #f2e7dd;
+  box-shadow: 0 8px 20px rgba(23, 35, 54, 0.06);
   margin-left: auto;
   margin-right: auto;
 }
