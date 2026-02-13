@@ -141,6 +141,7 @@ const els = {
   resultCard: document.getElementById("result-card"),
   canvas: document.getElementById("snapshot-canvas"),
   faceOverlay: document.getElementById("face-overlay-canvas"),
+  guideHint: document.getElementById("guide-hint"),
   analysisOverlay: document.getElementById("analysis-overlay"),
   analysisStep: document.getElementById("analysis-step"),
   analysisProgressFill: document.getElementById("analysis-progress-fill"),
@@ -164,6 +165,9 @@ function switchView(mode) {
   els.landingView.classList.toggle("active", mode === "landing");
   els.cameraView.classList.toggle("active", mode === "camera");
   els.resultView.classList.toggle("active", mode === "result");
+  document.body.classList.toggle("mode-landing", mode === "landing");
+  document.body.classList.toggle("mode-camera", mode === "camera");
+  document.body.classList.toggle("mode-result", mode === "result");
 }
 
 function setAnalysisOverlay(active, stepText = "", progress = 0) {
@@ -214,7 +218,53 @@ function clearOverlay() {
   ctx.clearRect(0, 0, els.faceOverlay.width, els.faceOverlay.height);
 }
 
-function drawLandmarksOverlay(landmarks) {
+function setGuideHint(text, ready = false) {
+  if (!els.guideHint) {
+    return;
+  }
+  els.guideHint.textContent = text;
+  els.guideHint.classList.toggle("ready", ready);
+}
+
+function getFaceGuideState(landmarks) {
+  if (!landmarks) {
+    return {
+      ok: false,
+      message: "얼굴을 가이드 프레임 안에 맞춰주세요.",
+    };
+  }
+
+  const leftCheek = pointAt(landmarks, 234);
+  const rightCheek = pointAt(landmarks, 454);
+  const forehead = pointAt(landmarks, 10);
+  const chin = pointAt(landmarks, 152);
+  const leftEyeOuter = pointAt(landmarks, 33);
+  const rightEyeOuter = pointAt(landmarks, 263);
+
+  const centerX = (leftCheek.x + rightCheek.x) / 2;
+  const centerY = (forehead.y + chin.y) / 2;
+  const faceWidth = distance(leftCheek, rightCheek);
+  const eyeTilt = Math.abs(leftEyeOuter.y - rightEyeOuter.y);
+
+  const horizontalOk = Math.abs(centerX - 0.5) <= 0.09;
+  const verticalOk = Math.abs(centerY - 0.52) <= 0.11;
+  const sizeOk = faceWidth >= 0.24 && faceWidth <= 0.52;
+  const tiltOk = eyeTilt <= 0.03;
+  const ok = horizontalOk && verticalOk && sizeOk && tiltOk;
+
+  if (ok) {
+    return { ok: true, message: "좋아요! 이 상태로 분석합니다." };
+  }
+  if (!sizeOk) {
+    return { ok: false, message: faceWidth < 0.24 ? "조금 더 가까이 와주세요." : "조금만 뒤로 이동해주세요." };
+  }
+  if (!horizontalOk || !verticalOk) {
+    return { ok: false, message: "얼굴을 가운데로 맞춰주세요." };
+  }
+  return { ok: false, message: "고개를 정면으로 맞춰주세요." };
+}
+
+function drawLandmarksOverlay(landmarks, guideState) {
   ensureOverlayCanvasSize();
   const ctx = els.faceOverlay.getContext("2d");
   const width = els.faceOverlay.width;
@@ -222,9 +272,25 @@ function drawLandmarksOverlay(landmarks) {
 
   ctx.clearRect(0, 0, width, height);
 
+  const guideCenterX = width * 0.5;
+  const guideCenterY = height * 0.52;
+  const guideRx = width * 0.2;
+  const guideRy = height * 0.34;
+  const guideReady = Boolean(guideState?.ok);
+
+  ctx.strokeStyle = guideReady ? "rgba(16, 185, 129, 0.95)" : "rgba(251, 146, 60, 0.95)";
+  ctx.lineWidth = Math.max(2, width / 220);
+  ctx.beginPath();
+  ctx.ellipse(guideCenterX, guideCenterY, guideRx, guideRy, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
   ctx.strokeStyle = "rgba(16, 185, 129, 0.9)";
   ctx.fillStyle = "rgba(249, 115, 22, 0.95)";
   ctx.lineWidth = Math.max(1, width / 500);
+
+  if (!landmarks) {
+    return;
+  }
 
   for (const idx of DEVICE.overlayPoints) {
     const p = landmarks[idx];
@@ -294,21 +360,24 @@ function runPreviewLoop() {
         try {
           const result = analyzer.landmarker.detectForVideo(els.camera, timestamp);
           const landmarks = result.faceLandmarks?.[0] || null;
+          const guideState = getFaceGuideState(landmarks);
           state.latestLandmarks = landmarks;
           state.latestBlendshapes = result.faceBlendshapes?.[0] || null;
           state.lastInferTs = timestamp;
-          if (landmarks) {
-            drawLandmarksOverlay(landmarks);
-          } else {
-            clearOverlay();
-          }
+          setGuideHint(guideState.message, guideState.ok);
+          drawLandmarksOverlay(landmarks, guideState);
         } catch (err) {
           state.latestLandmarks = null;
-          clearOverlay();
+          setGuideHint("얼굴을 가이드 프레임 안에 맞춰주세요.", false);
+          drawLandmarksOverlay(null, { ok: false });
           console.warn("실시간 추론 오류", err);
         }
       }
+    } else if (faceMode) {
+      setGuideHint("얼굴을 가이드 프레임 안에 맞춰주세요.", false);
+      drawLandmarksOverlay(null, { ok: false });
     } else {
+      setGuideHint("손바닥을 화면 중앙에 맞춰주세요.", false);
       clearOverlay();
     }
 
@@ -354,6 +423,11 @@ async function startCamera() {
   await waitForVideoReady();
   forceMirrorPreview();
   runPreviewLoop();
+  if (state.analysisType === "face") {
+    setGuideHint("얼굴을 가이드 프레임 안에 맞춰주세요.", false);
+  } else {
+    setGuideHint("손바닥을 화면 중앙에 맞춰주세요.", false);
+  }
   els.overlay.style.display = "none";
 }
 
@@ -370,8 +444,43 @@ function stopCamera() {
   state.hasCamera = false;
   state.latestLandmarks = null;
   state.latestBlendshapes = null;
+  setGuideHint("얼굴을 가이드 프레임 안에 맞춰주세요.", false);
   els.overlay.style.display = "grid";
   els.overlay.textContent = "카메라 권한을 허용해주세요.";
+}
+
+async function waitForFaceAlignment(timeoutMs = 9000) {
+  if (analyzer.mode !== "mediapipe") {
+    return true;
+  }
+
+  const startedAt = performance.now();
+  let stableSince = 0;
+  const stableNeededMs = DEVICE.name === "mobile" ? 900 : 700;
+
+  while (state.hasCamera && state.mode === "camera") {
+    const elapsed = performance.now() - startedAt;
+    if (elapsed > timeoutMs) {
+      return false;
+    }
+
+    const guideState = getFaceGuideState(state.latestLandmarks);
+    setGuideHint(guideState.message, guideState.ok);
+    if (guideState.ok) {
+      if (!stableSince) {
+        stableSince = performance.now();
+      }
+      if (performance.now() - stableSince >= stableNeededMs) {
+        return true;
+      }
+    } else {
+      stableSince = 0;
+    }
+
+    await sleep(90);
+  }
+
+  return false;
 }
 
 function captureFrame() {
@@ -669,7 +778,17 @@ async function startExperience(type) {
 
   try {
     await startCamera();
-    setStatus(type === "palm" ? "손금 카메라 준비 완료" : "관상 카메라 준비 완료");
+    if (type === "face") {
+      setStatus("얼굴 위치 확인 중...");
+      const aligned = await waitForFaceAlignment();
+      if (!aligned) {
+        setStatus("정렬 확인 시간이 지나 분석을 시작합니다.");
+      } else {
+        setStatus("얼굴 정렬 확인 완료");
+      }
+    } else {
+      setStatus("손금 카메라 준비 완료");
+    }
     await playAnalysisSequence(type);
 
     if (type === "palm") {

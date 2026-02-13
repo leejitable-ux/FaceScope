@@ -40,6 +40,19 @@ body {
   padding: 22px 16px 52px;
 }
 
+body.mode-landing .app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 16px;
+  padding-bottom: 24px;
+}
+
+body.mode-landing .hero {
+  margin-top: 0;
+}
+
 .hero,
 .panel,
 .privacy-card {
@@ -190,6 +203,29 @@ video,
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.guide-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff7ed;
+  background: rgba(124, 45, 18, 0.55);
+  border: 1px solid rgba(255, 237, 213, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 4;
+}
+
+.guide-hint.ready {
+  color: #ecfdf5;
+  background: rgba(5, 150, 105, 0.4);
+  border-color: rgba(167, 243, 208, 0.55);
 }
 
 .video-overlay {
