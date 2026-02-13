@@ -123,6 +123,19 @@ body {
   animation: pop-in 220ms ease;
 }
 
+.fullscreen-panel.active {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  margin: 0;
+  max-width: none;
+  border-radius: 0;
+  border: 0;
+  padding: 16px;
+  background: #0d0f14;
+  color: #fff;
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -141,6 +154,12 @@ body {
   border-radius: 16px;
   overflow: hidden;
   background: #111;
+}
+
+.fullscreen-panel .video-wrap {
+  height: min(72vh, 640px);
+  margin: 0 auto;
+  max-width: 860px;
 }
 
 video {
@@ -194,6 +213,25 @@ video {
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(17, 24, 39, 0.68);
   padding: 16px;
+}
+
+.landing-copy {
+  text-align: center;
+}
+
+.landing-copy h2 {
+  margin: 0 0 8px;
+}
+
+.landing-copy p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.landing-actions {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
 }
 
 .analysis-title {
@@ -292,6 +330,10 @@ video {
   text-align: center;
 }
 
+.fullscreen-panel .status {
+  color: #d1d5db;
+}
+
 .engine-badge {
   margin: 8px auto 0;
   display: block;
@@ -307,6 +349,16 @@ video {
 .engine-badge.fallback {
   color: #7c2d12;
   background: #ffedd5;
+}
+
+.fullscreen-panel .engine-badge {
+  background: rgba(5, 150, 105, 0.2);
+  color: #a7f3d0;
+}
+
+.fullscreen-panel .engine-badge.fallback {
+  background: rgba(194, 65, 12, 0.25);
+  color: #fdba74;
 }
 
 .result-head p {
@@ -425,5 +477,13 @@ video {
   .notice-card,
   .privacy-card {
     border-radius: 16px;
+  }
+
+  .fullscreen-panel.active {
+    padding: 12px;
+  }
+
+  .fullscreen-panel .video-wrap {
+    height: 64vh;
   }
 }

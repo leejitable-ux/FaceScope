@@ -28,7 +28,18 @@
       </ul>
     </section>
 
-    <section id="capture-view" class="panel active">
+    <section id="landing-view" class="panel active">
+      <div class="landing-copy">
+        <h2>시작하기</h2>
+        <p>원하는 테스트를 선택하면 카메라가 켜지고 자동으로 분석이 진행됩니다.</p>
+      </div>
+      <div class="landing-actions">
+        <button id="start-face-btn" class="btn btn-primary" type="button">관상 보기</button>
+        <button id="start-palm-btn" class="btn btn-secondary" type="button">손금 보기</button>
+      </div>
+    </section>
+
+    <section id="camera-view" class="panel fullscreen-panel">
       <div class="video-wrap">
         <video id="camera" autoplay muted playsinline></video>
         <canvas id="face-overlay-canvas" class="face-overlay-canvas" aria-hidden="true"></canvas>
@@ -45,8 +56,7 @@
       </div>
 
       <div class="actions">
-        <button id="start-camera-btn" class="btn btn-primary" type="button">카메라 시작</button>
-        <button id="analyze-btn" class="btn btn-secondary" type="button" disabled>결과 보기</button>
+        <button id="cancel-camera-btn" class="btn btn-secondary" type="button">닫기</button>
       </div>
 
       <p id="status" class="status">대기 중</p>
@@ -63,7 +73,7 @@
       <article id="result-card" class="result-card"></article>
 
       <div class="actions">
-        <button id="retry-btn" class="btn btn-primary" type="button">다시 테스트</button>
+        <button id="retry-btn" class="btn btn-primary" type="button">처음으로</button>
       </div>
     </section>
 
