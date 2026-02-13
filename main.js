@@ -496,6 +496,7 @@ async function waitForFaceAlignment(timeoutMs = 9000) {
   while (state.hasCamera && state.mode === "camera") {
     const elapsed = performance.now() - startedAt;
     if (elapsed > timeoutMs) {
+      setGuideHint("얼굴 인식이 안됐어요. 정면으로 다시 맞춰주세요.", false);
       return false;
     }
 
@@ -817,10 +818,10 @@ async function startExperience(type) {
       setStatus("얼굴 위치 확인 중...");
       const aligned = await waitForFaceAlignment();
       if (!aligned) {
-        setStatus("정렬 확인 시간이 지나 분석을 시작합니다.");
-      } else {
-        setStatus("얼굴 정렬 확인 완료");
+        setStatus("얼굴 인식이 안돼서 분석을 시작할 수 없어요. 얼굴을 프레임에 맞춰 다시 시도해주세요.");
+        return;
       }
+      setStatus("얼굴 정렬 확인 완료");
     } else {
       setStatus("손금 카메라 준비 완료");
     }
