@@ -1,1 +1,259 @@
-/* Add styles here */
+:root {
+  --bg: #fffaf2;
+  --surface: #fff;
+  --text: #1c1b18;
+  --muted: #635f57;
+  --brand: #c8531f;
+  --brand-soft: #f6c2a6;
+  --accent: #0f766e;
+  --line: #e6d8c9;
+  --shadow: 0 14px 40px rgba(28, 27, 24, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 10% 10%, #ffe8d6 0%, transparent 42%),
+              radial-gradient(circle at 90% 15%, #d1fae5 0%, transparent 38%),
+              var(--bg);
+  min-height: 100vh;
+}
+
+.background-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(200, 83, 31, 0.06), rgba(15, 118, 110, 0.06));
+}
+
+.app-shell {
+  position: relative;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+
+.hero h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  margin: 0;
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: #dcfce7;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.notice-card,
+.privacy-card,
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.notice-card,
+.privacy-card {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.notice-card h2,
+.privacy-card h2,
+.result-head h2 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.notice-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 18px;
+  display: none;
+}
+
+.panel.active {
+  display: block;
+  animation: pop-in 220ms ease;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.face-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56));
+}
+
+.actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 0.96rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--brand-soft);
+  color: #5a2107;
+}
+
+.status {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.engine-badge {
+  margin: 8px 0 0;
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #064e3b;
+  background: #d1fae5;
+}
+
+.engine-badge.fallback {
+  color: #7c2d12;
+  background: #ffedd5;
+}
+
+.result-head p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.result-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: #fffdf9;
+}
+
+.result-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.24rem;
+}
+
+.result-card .tone {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.result-card p {
+  margin: 10px 0 0;
+  color: #3f3b34;
+  line-height: 1.55;
+}
+
+.result-card .tips {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 18px 14px 40px;
+  }
+
+  .btn {
+    flex: 1 1 100%;
+  }
+
+  .panel,
+  .notice-card,
+  .privacy-card {
+    border-radius: 16px;
+  }
+}

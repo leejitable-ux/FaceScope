@@ -1,14 +1,72 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="오락용 관상 재미 테스트 MVP. 얼굴 정보는 브라우저에서만 처리하며 서버에 저장하지 않습니다.">
+  <title>관상 재미 테스트 | FaceScope MVP</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+  <div class="background-glow" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="hero">
+      <p class="eyebrow">FaceScope MVP</p>
+      <h1>관상 재미 테스트</h1>
+      <p class="lead">
+        카메라 화면을 기반으로 오락용 결과를 제공합니다.
+        의료/채용/법률/재정 판단 용도로 사용하지 마세요.
+      </p>
+    </header>
+
+    <section class="notice-card">
+      <h2>중요 안내</h2>
+      <ul>
+        <li>본 서비스는 오락/참고용입니다.</li>
+        <li>의학적 진단, 심리 판정, 인사 평가 목적으로 사용할 수 없습니다.</li>
+        <li>얼굴 데이터는 기본적으로 브라우저 로컬에서 처리되며, 서버로 업로드/저장하지 않습니다.</li>
+      </ul>
+    </section>
+
+    <section id="capture-view" class="panel active">
+      <div class="video-wrap">
+        <video id="camera" autoplay muted playsinline></video>
+        <canvas id="face-overlay-canvas" class="face-overlay-canvas" aria-hidden="true"></canvas>
+        <div id="video-overlay" class="video-overlay">카메라 권한을 허용해주세요.</div>
+      </div>
+
+      <div class="actions">
+        <button id="start-camera-btn" class="btn btn-primary" type="button">카메라 시작</button>
+        <button id="analyze-btn" class="btn btn-secondary" type="button" disabled>결과 보기</button>
+      </div>
+
+      <p id="status" class="status">대기 중</p>
+      <p id="engine-badge" class="engine-badge">분석 엔진: 초기화 중</p>
+      <canvas id="snapshot-canvas" width="640" height="480" hidden></canvas>
+    </section>
+
+    <section id="result-view" class="panel" aria-live="polite">
+      <div class="result-head">
+        <h2>테스트 결과</h2>
+        <p>아래 결과는 재미 요소 중심의 안내 카드입니다.</p>
+      </div>
+
+      <article id="result-card" class="result-card"></article>
+
+      <div class="actions">
+        <button id="retry-btn" class="btn btn-primary" type="button">다시 테스트</button>
+      </div>
+    </section>
+
+    <section class="privacy-card">
+      <h2>개인정보 처리 안내</h2>
+      <p>
+        이 MVP는 얼굴 영상 프레임을 브라우저 내부에서만 읽고 처리합니다.
+        기본 설계상 서버 전송/DB 저장 로직은 포함하지 않습니다.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="/main.js"></script>
 </body>
 </html>
