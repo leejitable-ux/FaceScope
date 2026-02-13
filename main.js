@@ -745,46 +745,12 @@ function selectResultByTraits(traits, seedNumber) {
 }
 
 function buildResultHTML(result, analysis) {
-  const metricText = analysis.mode === "mediapipe"
-    ? `얼굴비 ${analysis.metrics.faceRatio.toFixed(2)}, 눈간격 ${analysis.metrics.eyeRatio.toFixed(2)}, 눈크기 ${analysis.metrics.eyeSizeRatio.toFixed(3)}, 코길이 ${analysis.metrics.noseLengthRatio.toFixed(3)}, 코폭 ${analysis.metrics.noseWidthRatio.toFixed(3)}, 입비율 ${analysis.metrics.mouthRatio.toFixed(2)}, 대칭오프셋 ${analysis.metrics.symmetryOffset.toFixed(3)}`
-    : `평균 밝기 ${analysis.metrics.avgLuma.toFixed(1)}, 색상 밸런스 ${analysis.metrics.colorBalance.toFixed(1)}`;
-
-  const modeText = analysis.mode === "mediapipe"
-    ? "MediaPipe Face Landmarker + 룰 엔진"
-    : "룰 기반 폴백 엔진";
-
-  const traitsText = `에너지 ${Math.round(analysis.traits.energy * 100)} / 사교성 ${Math.round(analysis.traits.social * 100)} / 집중 ${Math.round(analysis.traits.focus * 100)} / 안정 ${Math.round(analysis.traits.calm * 100)} / 창의 ${Math.round(analysis.traits.creative * 100)}`;
-  const basisText = buildTraditionalBasis(analysis).join("<br>");
-  const specificBasisText = buildCardSpecificBasis(result.id, analysis).join("<br>");
-  const featureReadings = buildFeatureReadings(analysis)
-    .map((line) => `<p>${line}</p>`)
-    .join("");
-  const expertReportText = buildExpertReport(result, analysis)
-    .map((line) => `<p>${line}</p>`)
-    .join("");
-
   return `
     <h3>${result.title}</h3>
     <p class="tone">${result.tone}</p>
     <p>${result.description}</p>
     <p class="tips">${result.tips}</p>
     <p class="tips">오락용 해석 결과이며, 실제 성격/능력/적합성 판단 용도로 사용하지 마세요.</p>
-    <details class="debug-details">
-      <summary>분석 근거 보기 (개발용)</summary>
-      <p class="tips">분석 모드: ${modeText}</p>
-      <p class="tips">특성 벡터: ${traitsText}</p>
-      <p class="tips">측정 정보: ${metricText}</p>
-      <section class="expert-report">
-        <h4>오관/삼정 항목</h4>
-        ${featureReadings}
-      </section>
-      <p class="tips">해석 기준(오락용):<br>${basisText}</p>
-      <p class="tips">카드 전용 해석:<br>${specificBasisText}</p>
-      <section class="expert-report">
-        <h4>전문가 해설 리포트</h4>
-        ${expertReportText}
-      </section>
-    </details>
   `;
 }
 
