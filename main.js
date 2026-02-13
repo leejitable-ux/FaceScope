@@ -120,7 +120,7 @@ const ARCHETYPE_IMAGE_MAP = {
   "creative-mixer": "/assets/archetypes/yein.svg",
   "bold-explorer": "/assets/archetypes/hoan.svg",
   "balanced-director": "/assets/archetypes/jaebok.svg",
-  "orc-guardian": "/assets/archetypes/hoan.svg",
+  "orc-guardian": "/assets/archetypes/orc_cc0.png",
 };
 
 const FORCE_ORC_RESULT = true;
