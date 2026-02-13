@@ -453,6 +453,102 @@ function buildTraditionalBasis(analysis) {
   return basis;
 }
 
+function buildCardSpecificBasis(resultId, analysis) {
+  if (analysis.mode !== "mediapipe") {
+    return [
+      "카드별 세부 관상 해석은 랜드마크 인식 시점에 활성화됩니다.",
+    ];
+  }
+
+  const m = analysis.metrics;
+  const t = analysis.traits;
+
+  const catalog = {
+    "sunrise-strategy": [
+      m.browEyeRatio <= 0.09
+        ? "미간-눈 중심 간격이 조밀한 축이라 판단 집약형 문구를 강화했습니다."
+        : "미간-눈 중심 간격이 완만한 축이라 계획-조율 문구를 유지했습니다.",
+      m.eyeRatio <= 0.28
+        ? "눈폭 대비 간격이 안정형이라 장기 설계 해석을 우선 적용했습니다."
+        : "눈 간격이 열린 편이라 확장형 기획 해석을 함께 반영했습니다.",
+    ],
+    "warm-navigator": [
+      m.mouthRatio >= 0.34
+        ? "입 비율이 열린 축이라 대인 조화/공감 문구의 비중을 높였습니다."
+        : "입 비율이 안정 축이라 배려와 신뢰 중심 문구를 유지했습니다.",
+      t.social >= 0.62
+        ? "사교 지표가 높아 관계 조율형 해석을 전면 배치했습니다."
+        : "사교 지표가 중간권이라 균형형 소통 해석으로 정리했습니다.",
+    ],
+    "spark-initiator": [
+      m.mouthOpenRatio >= 0.038
+        ? "입 개방 비율이 높은 편으로 분류되어 즉시 실행형 문구를 강화했습니다."
+        : "입 개방 비율이 안정권이라 추진-신중 균형 문구를 적용했습니다.",
+      t.energy >= 0.7
+        ? "에너지 지표 우세로 스타트 속도형 해석을 우선 노출했습니다."
+        : "에너지 지표가 보통이라 점화-준비 병행 해석으로 구성했습니다.",
+    ],
+    "steady-crafter": [
+      m.symmetryOffset <= 0.08
+        ? "중심축 안정도가 높아 완성도/정밀도 해석 가중치를 높였습니다."
+        : "중심축 편차가 보여 보정/반복 개선형 해석을 적용했습니다.",
+      t.focus >= 0.7
+        ? "집중 지표 우세로 디테일 고도화형 문구를 전면 배치했습니다."
+        : "집중 지표가 중간권이라 꾸준함 중심 문구로 정리했습니다.",
+    ],
+    "lively-connector": [
+      m.eyeRatio >= 0.29
+        ? "눈 간격 확장 축으로 관계 확장/연결 해석을 강화했습니다."
+        : "눈 간격 안정 축으로 핵심 인맥 밀도형 해석을 유지했습니다.",
+      t.social >= 0.68
+        ? "사교 지표 상위권이라 커넥터형 문구를 강하게 반영했습니다."
+        : "사교 지표 중상권이라 친화형 문구 중심으로 반영했습니다.",
+    ],
+    "deep-diver": [
+      m.faceRatio <= 0.95
+        ? "상정-중정 집중형 비율로 탐구/분석형 해석을 우선 적용했습니다."
+        : "중정-하정 확장형 비율로 분석+실행 병행 해석을 추가했습니다.",
+      t.focus >= 0.72
+        ? "집중 지표가 높아 단일 주제 몰입형 문구를 강화했습니다."
+        : "집중 지표가 중간권이라 단계 탐구형 문구로 조정했습니다.",
+    ],
+    "calm-anchor": [
+      m.symmetryOffset <= 0.078
+        ? "중심축 균형이 높게 잡혀 안정/신뢰 문구를 우선 배치했습니다."
+        : "중심축 변동이 있어 유연 안정형 문구를 병행 배치했습니다.",
+      t.calm >= 0.7
+        ? "안정 지표가 높아 위기 완충형 해석을 강화했습니다."
+        : "안정 지표가 중간권이라 균형 회복형 해석으로 정리했습니다.",
+    ],
+    "creative-mixer": [
+      m.faceRatio >= 0.96
+        ? "얼굴 비율 확장 축으로 전환/융합 문구의 가중치를 높였습니다."
+        : "얼굴 비율 안정 축으로 구조화된 창의 문구를 유지했습니다.",
+      t.creative >= 0.7
+        ? "창의 지표 우세로 조합/재구성형 해석을 전면 노출했습니다."
+        : "창의 지표 중간권이라 응용형 해석 중심으로 배치했습니다.",
+    ],
+    "bold-explorer": [
+      m.lowerFaceRatio >= 0.29
+        ? "하정 비율이 큰 축으로 분류되어 개척/돌파 문구를 강화했습니다."
+        : "하정 비율이 보통 축이라 도전-안전 병행 문구로 구성했습니다.",
+      t.energy >= 0.72
+        ? "에너지 지표 상위권이라 선행 시도형 해석을 우선 적용했습니다."
+        : "에너지 지표 중상권이라 점진 도전형 해석으로 정리했습니다.",
+    ],
+    "balanced-director": [
+      m.browEyeRatio <= 0.095
+        ? "미간-눈 비율이 안정 축이라 판단/조율형 문구의 비중을 높였습니다."
+        : "미간-눈 비율이 유동 축이라 조율+실행형 문구를 병행했습니다.",
+      t.focus >= 0.66 && t.calm >= 0.66
+        ? "집중·안정 지표가 함께 높아 의사결정형 해석을 강화했습니다."
+        : "집중·안정 지표가 중간권이라 균형 관리자형 해석을 적용했습니다.",
+    ],
+  };
+
+  return catalog[resultId] || [];
+}
+
 function traitsFromMediapipe(metrics, blendshapeCategory) {
   const smileScore = blendshapeCategory?.find((it) => it.categoryName === "mouthSmileLeft")?.score || 0;
   return {
@@ -507,6 +603,7 @@ function buildResultHTML(result, analysis) {
 
   const traitsText = `에너지 ${Math.round(analysis.traits.energy * 100)} / 사교성 ${Math.round(analysis.traits.social * 100)} / 집중 ${Math.round(analysis.traits.focus * 100)} / 안정 ${Math.round(analysis.traits.calm * 100)} / 창의 ${Math.round(analysis.traits.creative * 100)}`;
   const basisText = buildTraditionalBasis(analysis).join("<br>");
+  const specificBasisText = buildCardSpecificBasis(result.id, analysis).join("<br>");
 
   return `
     <h3>${result.title}</h3>
@@ -517,6 +614,7 @@ function buildResultHTML(result, analysis) {
     <p class="tips">특성 벡터: ${traitsText}</p>
     <p class="tips">측정 정보: ${metricText}</p>
     <p class="tips">해석 기준(오락용):<br>${basisText}</p>
+    <p class="tips">카드 전용 해석:<br>${specificBasisText}</p>
   `;
 }
 
