@@ -589,8 +589,6 @@ function buildFaceResultHTML(result, analysis) {
       <p><strong>얼굴형</strong> ${parts.face.replace("얼굴형:", "").trim()}</p>
       <p class="part-summary">${parts.summary}</p>
     </div>
-    <p class="tips">${result.tips}</p>
-    <p class="tips">오락용 해석 결과이며, 실제 성격/능력/적합성 판단 용도로 사용하지 마세요.</p>
   `;
 }
 
@@ -615,8 +613,6 @@ function buildPalmResultHTML(result) {
       <p><strong>선의 연결감</strong> 끊김보다 연결 흐름 여부를 보조 지표로 반영했습니다.</p>
       <p class="part-summary">그래서 현재는 ${result.title} 흐름이 강조되는 타입으로 해석됩니다.</p>
     </div>
-    <p class="tips">${result.tips}</p>
-    <p class="tips">손금 결과도 오락용 해석이며, 실제 판단 근거로 사용하지 마세요.</p>
   `;
 }
 
