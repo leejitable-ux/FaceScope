@@ -744,11 +744,95 @@ function selectResultByTraits(traits, seedNumber) {
   return RESULT_LIBRARY.find((x) => x.id === bestId) || RESULT_LIBRARY[0];
 }
 
+const ARCHETYPE_ART = {
+  "sunrise-strategy": { bg: "#fde68a", face: "#fef3c7", badge: "RY", accent: "#92400e" },
+  "warm-navigator": { bg: "#fed7aa", face: "#ffedd5", badge: "IN", accent: "#9a3412" },
+  "spark-initiator": { bg: "#fecaca", face: "#fee2e2", badge: "JG", accent: "#991b1b" },
+  "steady-crafter": { bg: "#dbeafe", face: "#eff6ff", badge: "MC", accent: "#1e3a8a" },
+  "lively-connector": { bg: "#fbcfe8", face: "#fdf2f8", badge: "BA", accent: "#9d174d" },
+  "deep-diver": { bg: "#ddd6fe", face: "#f5f3ff", badge: "HS", accent: "#5b21b6" },
+  "calm-anchor": { bg: "#bbf7d0", face: "#f0fdf4", badge: "JS", accent: "#166534" },
+  "creative-mixer": { bg: "#fde68a", face: "#fffbeb", badge: "YA", accent: "#a16207" },
+  "bold-explorer": { bg: "#fecdd3", face: "#fff1f2", badge: "HA", accent: "#9f1239" },
+  "balanced-director": { bg: "#bfdbfe", face: "#eff6ff", badge: "JB", accent: "#1d4ed8" },
+};
+
+function getArchetypeImageSrc(resultId) {
+  const art = ARCHETYPE_ART[resultId] || ARCHETYPE_ART["sunrise-strategy"];
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'>
+    <defs>
+      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0%' stop-color='${art.bg}'/>
+        <stop offset='100%' stop-color='#ffffff'/>
+      </linearGradient>
+    </defs>
+    <rect width='280' height='280' rx='28' fill='url(#g)'/>
+    <circle cx='140' cy='120' r='64' fill='${art.face}'/>
+    <ellipse cx='114' cy='114' rx='8' ry='6' fill='${art.accent}'/>
+    <ellipse cx='166' cy='114' rx='8' ry='6' fill='${art.accent}'/>
+    <path d='M114 146 Q140 162 166 146' stroke='${art.accent}' stroke-width='5' fill='none' stroke-linecap='round'/>
+    <rect x='90' y='186' width='100' height='58' rx='22' fill='${art.face}'/>
+    <rect x='104' y='198' width='72' height='34' rx='16' fill='${art.accent}' opacity='0.18'/>
+    <text x='140' y='221' text-anchor='middle' font-size='22' font-weight='800' fill='${art.accent}' font-family='Arial, sans-serif'>${art.badge}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function buildPartNarrative(analysis) {
+  if (analysis.mode !== "mediapipe") {
+    return {
+      eye: "눈: 조명과 화면 상태를 기준으로 안정형으로 읽혔어요.",
+      nose: "코: 랜드마크가 없어 보조 규칙 기준으로 균형형으로 분류했어요.",
+      mouth: "입: 표현성은 중간 축으로 판단했어요.",
+      brow: "눈썹: 기복이 크지 않은 신중형 흐름으로 해석했어요.",
+      face: "얼굴형: 전체 흐름은 안정-실행의 균형형으로 분류했어요.",
+      summary: "그래서 처음엔 신중하게 보고, 결정을 내리면 꾸준히 가는 타입으로 해석됩니다.",
+    };
+  }
+
+  const m = analysis.metrics;
+  const eye = m.eyeOpennessRatio >= 0.04
+    ? "눈: 시야가 열린 축으로 읽혀 반응 속도가 빠르고 상황 캐치가 좋은 편으로 해석했어요."
+    : "눈: 절제된 축으로 읽혀 한 번 더 점검하고 움직이는 신중형으로 해석했어요.";
+  const nose = m.noseLengthRatio >= 0.34
+    ? "코: 중정 길이 축이 살아 있어 중심 추진력과 버티는 힘이 있는 타입으로 읽었어요."
+    : "코: 중정이 안정 축이라 균형감 있게 판단하고 무리하지 않는 타입으로 읽었어요.";
+  const mouth = m.mouthRatio >= 0.34
+    ? "입: 표현 축이 넓게 잡혀 의견 전달과 관계 확장이 좋은 흐름으로 해석했어요."
+    : "입: 절제 축이라 말보다 실행으로 보여주는 흐름으로 해석했어요.";
+  const brow = m.browEyeRatio <= 0.095
+    ? "눈썹: 눈과의 간격이 안정 축이라 집중력과 결론 정리력이 좋은 타입으로 읽었어요."
+    : "눈썹: 간격이 유동 축이라 유연하게 관점을 바꾸는 타입으로 읽었어요.";
+  const face = m.faceRatio >= 0.95
+    ? "얼굴형: 중·하정이 길게 읽혀 실전/행동 전환이 빠른 흐름으로 해석했어요."
+    : "얼굴형: 상·중정 집중 축으로 읽혀 기획과 구조화 성향이 도드라지는 흐름이에요.";
+  const summary = m.symmetryOffset <= 0.085
+    ? "그래서 전체적으로 균형감 있게 오래 끌고 가는 성향이 강한 타입으로 봤어요."
+    : "그래서 변화에 빠르게 적응하고 상황마다 전략을 바꾸는 타입으로 봤어요.";
+
+  return { eye, nose, mouth, brow, face, summary };
+}
+
 function buildResultHTML(result, analysis) {
+  const parts = buildPartNarrative(analysis);
+  const imageSrc = getArchetypeImageSrc(result.id);
   return `
-    <h3>${result.title}</h3>
-    <p class="tone">${result.tone}</p>
+    <div class="result-hero">
+      <img class="result-portrait" src="${imageSrc}" alt="${result.title} 관상 일러스트" />
+      <div class="result-headline">
+        <h3>${result.title}</h3>
+        <p class="tone">${result.tone}</p>
+      </div>
+    </div>
     <p>${result.description}</p>
+    <div class="part-readout">
+      <p>${parts.eye}</p>
+      <p>${parts.nose}</p>
+      <p>${parts.mouth}</p>
+      <p>${parts.brow}</p>
+      <p>${parts.face}</p>
+      <p class="part-summary">${parts.summary}</p>
+    </div>
     <p class="tips">${result.tips}</p>
     <p class="tips">오락용 해석 결과이며, 실제 성격/능력/적합성 판단 용도로 사용하지 마세요.</p>
   `;
