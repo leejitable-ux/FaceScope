@@ -4,13 +4,16 @@
   Permissions-Policy: camera=(self)
 
 /index.html
-  Cache-Control: no-store
+  Cache-Control: no-store, no-cache, must-revalidate
 
 /
-  Cache-Control: no-store
+  Cache-Control: no-store, no-cache, must-revalidate
 
 /main.js
-  Cache-Control: no-store
+  Cache-Control: no-store, no-cache, must-revalidate
 
 /style.css
-  Cache-Control: no-store
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/*
+  Cache-Control: no-store, no-cache, must-revalidate
