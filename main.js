@@ -3,6 +3,32 @@ const MEDIAPIPE_CDN = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${ME
 const MEDIAPIPE_WASM_ROOT = `${MEDIAPIPE_CDN}/wasm`;
 const FACE_LANDMARKER_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
+function detectDeviceProfile() {
+  const ua = navigator.userAgent || "";
+  const isPhoneUa = /Android|iPhone|iPod/i.test(ua);
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  const smallScreen = Math.min(window.innerWidth, window.innerHeight) <= 820;
+  const isMobile = isPhoneUa || (isCoarsePointer && smallScreen);
+
+  return isMobile
+    ? {
+      name: "mobile",
+      videoWidthIdeal: 640,
+      videoHeightIdeal: 480,
+      maxInferFps: 10,
+      overlayPoints: [10, 152, 1, 33, 263, 61, 291],
+    }
+    : {
+      name: "desktop",
+      videoWidthIdeal: 1280,
+      videoHeightIdeal: 720,
+      maxInferFps: 20,
+      overlayPoints: [10, 152, 1, 33, 263, 61, 291, 13, 14, 105, 334, 234, 454],
+    };
+}
+
+const DEVICE = detectDeviceProfile();
+
 const state = {
   stream: null,
   hasCamera: false,
@@ -12,82 +38,22 @@ const state = {
   engineReady: false,
   engineError: null,
   renderRafId: null,
+  lastInferTs: 0,
   latestLandmarks: null,
   latestBlendshapes: null,
-  latestFaceCount: 0,
 };
 
 const RESULT_LIBRARY = [
-  {
-    id: "sunrise-strategy",
-    title: "새벽 전략가형",
-    tone: "침착함 + 설계형 사고",
-    description: "상황을 빠르게 읽고 차분하게 계획을 세우는 편으로 해석됐어요. 중요한 순간에 감정보다 구조를 먼저 보는 타입입니다.",
-    tips: "재미 포인트: 오늘의 선택에서 우선순위 1개만 정해보세요.",
-  },
-  {
-    id: "warm-navigator",
-    title: "온화한 네비게이터형",
-    tone: "배려 + 균형감",
-    description: "분위기를 유연하게 만들고 주변의 속도를 맞추는 경향이 강하게 나왔어요. 팀 플레이에서 빛나는 스타일입니다.",
-    tips: "재미 포인트: 오늘 대화에서 칭찬 한 문장을 먼저 건네보세요.",
-  },
-  {
-    id: "spark-initiator",
-    title: "점화 이니시에이터형",
-    tone: "추진력 + 호기심",
-    description: "시작이 빠르고 아이디어 점프가 좋은 흐름이에요. 새로운 도전을 재미 요소로 받아들이는 해석입니다.",
-    tips: "재미 포인트: 미뤄둔 작은 할 일 하나를 5분만 착수해보세요.",
-  },
-  {
-    id: "steady-crafter",
-    title: "꾸준한 크래프터형",
-    tone: "집중력 + 완성도",
-    description: "한 번 잡은 일은 끝까지 다듬는 성향으로 분류됐어요. 속도보다 품질을 중시하는 면이 돋보입니다.",
-    tips: "재미 포인트: 오늘 마무리할 항목 1개를 먼저 끝내보세요.",
-  },
-  {
-    id: "lively-connector",
-    title: "활력 커넥터형",
-    tone: "사교성 + 순발력",
-    description: "사람과 사람 사이의 연결 고리를 빨리 찾아내는 편으로 해석됩니다. 즉흥 상황 대응력이 좋은 타입입니다.",
-    tips: "재미 포인트: 오랜만인 지인에게 짧은 안부 메시지를 보내보세요.",
-  },
-  {
-    id: "deep-diver",
-    title: "깊이 탐구형",
-    tone: "분석력 + 몰입",
-    description: "하나의 주제를 깊게 파고드는 성향이 강조됐어요. 디테일을 발견하는 재미를 잘 느끼는 편입니다.",
-    tips: "재미 포인트: 관심 주제 아티클 1개를 요약해보세요.",
-  },
-  {
-    id: "calm-anchor",
-    title: "차분한 앵커형",
-    tone: "안정감 + 신뢰",
-    description: "급한 상황에서도 리듬을 유지하는 특성이 보여요. 주변에서 믿고 의지하기 쉬운 캐릭터로 해석됩니다.",
-    tips: "재미 포인트: 오늘 할 일 중 가장 불안한 항목부터 착수해보세요.",
-  },
-  {
-    id: "creative-mixer",
-    title: "크리에이티브 믹서형",
-    tone: "유연함 + 전환력",
-    description: "서로 다른 아이디어를 섞어 새로운 결론으로 만드는 흐름이 감지됐어요. 변화 대응이 빠른 편입니다.",
-    tips: "재미 포인트: 익숙한 루틴 하나를 다른 방식으로 바꿔보세요.",
-  },
-  {
-    id: "bold-explorer",
-    title: "대담한 익스플로러형",
-    tone: "자신감 + 개척성",
-    description: "낯선 영역에서도 먼저 발을 들여보는 성향이 강조됩니다. 시행착오를 학습으로 바꾸는 타입으로 해석돼요.",
-    tips: "재미 포인트: 이번 주 시도할 새로운 활동 1개를 적어보세요.",
-  },
-  {
-    id: "balanced-director",
-    title: "균형 디렉터형",
-    tone: "판단력 + 조율",
-    description: "복수 선택지 사이에서 균형점을 찾는 특징이 나왔어요. 전체 그림을 보며 의사결정하는 성향입니다.",
-    tips: "재미 포인트: 고민 중인 선택지를 장단점 3개씩만 적어보세요.",
-  },
+  { id: "sunrise-strategy", title: "새벽 전략가형", tone: "침착함 + 설계형 사고", description: "상황을 빠르게 읽고 차분하게 계획을 세우는 편으로 해석됐어요. 중요한 순간에 감정보다 구조를 먼저 보는 타입입니다.", tips: "재미 포인트: 오늘의 선택에서 우선순위 1개만 정해보세요." },
+  { id: "warm-navigator", title: "온화한 네비게이터형", tone: "배려 + 균형감", description: "분위기를 유연하게 만들고 주변의 속도를 맞추는 경향이 강하게 나왔어요. 팀 플레이에서 빛나는 스타일입니다.", tips: "재미 포인트: 오늘 대화에서 칭찬 한 문장을 먼저 건네보세요." },
+  { id: "spark-initiator", title: "점화 이니시에이터형", tone: "추진력 + 호기심", description: "시작이 빠르고 아이디어 점프가 좋은 흐름이에요. 새로운 도전을 재미 요소로 받아들이는 해석입니다.", tips: "재미 포인트: 미뤄둔 작은 할 일 하나를 5분만 착수해보세요." },
+  { id: "steady-crafter", title: "꾸준한 크래프터형", tone: "집중력 + 완성도", description: "한 번 잡은 일은 끝까지 다듬는 성향으로 분류됐어요. 속도보다 품질을 중시하는 면이 돋보입니다.", tips: "재미 포인트: 오늘 마무리할 항목 1개를 먼저 끝내보세요." },
+  { id: "lively-connector", title: "활력 커넥터형", tone: "사교성 + 순발력", description: "사람과 사람 사이의 연결 고리를 빨리 찾아내는 편으로 해석됩니다. 즉흥 상황 대응력이 좋은 타입입니다.", tips: "재미 포인트: 오랜만인 지인에게 짧은 안부 메시지를 보내보세요." },
+  { id: "deep-diver", title: "깊이 탐구형", tone: "분석력 + 몰입", description: "하나의 주제를 깊게 파고드는 성향이 강조됐어요. 디테일을 발견하는 재미를 잘 느끼는 편입니다.", tips: "재미 포인트: 관심 주제 아티클 1개를 요약해보세요." },
+  { id: "calm-anchor", title: "차분한 앵커형", tone: "안정감 + 신뢰", description: "급한 상황에서도 리듬을 유지하는 특성이 보여요. 주변에서 믿고 의지하기 쉬운 캐릭터로 해석됩니다.", tips: "재미 포인트: 오늘 할 일 중 가장 불안한 항목부터 착수해보세요." },
+  { id: "creative-mixer", title: "크리에이티브 믹서형", tone: "유연함 + 전환력", description: "서로 다른 아이디어를 섞어 새로운 결론으로 만드는 흐름이 감지됐어요. 변화 대응이 빠른 편입니다.", tips: "재미 포인트: 익숙한 루틴 하나를 다른 방식으로 바꿔보세요." },
+  { id: "bold-explorer", title: "대담한 익스플로러형", tone: "자신감 + 개척성", description: "낯선 영역에서도 먼저 발을 들여보는 성향이 강조됩니다. 시행착오를 학습으로 바꾸는 타입으로 해석돼요.", tips: "재미 포인트: 이번 주 시도할 새로운 활동 1개를 적어보세요." },
+  { id: "balanced-director", title: "균형 디렉터형", tone: "판단력 + 조율", description: "복수 선택지 사이에서 균형점을 찾는 특징이 나왔어요. 전체 그림을 보며 의사결정하는 성향입니다.", tips: "재미 포인트: 고민 중인 선택지를 장단점 3개씩만 적어보세요." },
 ];
 
 const PROFILE_WEIGHTS = {
@@ -139,8 +105,8 @@ function switchView(mode) {
   els.resultView.classList.toggle("active", mode === "result");
 }
 
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
+function clamp01(v) {
+  return Math.max(0, Math.min(1, v));
 }
 
 function distance(p1, p2) {
@@ -176,7 +142,7 @@ function drawLandmarksOverlay(landmarks) {
 
   ctx.clearRect(0, 0, width, height);
 
-  const keyIndices = [10, 152, 1, 33, 263, 61, 291, 13, 14, 105, 334, 234, 454];
+  const keyIndices = DEVICE.overlayPoints;
   ctx.strokeStyle = "rgba(16, 185, 129, 0.9)";
   ctx.fillStyle = "rgba(249, 115, 22, 0.95)";
   ctx.lineWidth = Math.max(1, width / 500);
@@ -189,7 +155,7 @@ function drawLandmarksOverlay(landmarks) {
     const x = p.x * width;
     const y = p.y * height;
     ctx.beginPath();
-    ctx.arc(x, y, Math.max(2, width / 240), 0, Math.PI * 2);
+    ctx.arc(x, y, Math.max(2, width / 260), 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -215,19 +181,17 @@ async function initAnalyzer() {
   }
 
   analyzer.initialized = true;
-  setEngineBadge("분석 엔진: MediaPipe 초기화 중");
+  setEngineBadge(`분석 엔진: MediaPipe 초기화 중 (${DEVICE.name})`);
 
   try {
     const tasks = await import(MEDIAPIPE_CDN);
     const vision = await tasks.FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_ROOT);
     analyzer.landmarker = await tasks.FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: FACE_LANDMARKER_MODEL,
-      },
+      baseOptions: { modelAssetPath: FACE_LANDMARKER_MODEL },
       runningMode: "VIDEO",
       numFaces: 1,
       outputFaceBlendshapes: true,
-      minFaceDetectionConfidence: 0.5,
+      minFaceDetectionConfidence: DEVICE.name === "mobile" ? 0.45 : 0.5,
       minFacePresenceConfidence: 0.5,
       minTrackingConfidence: 0.5,
     });
@@ -235,8 +199,7 @@ async function initAnalyzer() {
     analyzer.mode = "mediapipe";
     state.engine = "mediapipe";
     state.engineReady = true;
-    state.engineError = null;
-    setEngineBadge("분석 엔진: MediaPipe 로컬 추론 활성화");
+    setEngineBadge(`분석 엔진: MediaPipe 로컬 추론 (${DEVICE.maxInferFps}fps)`);
   } catch (err) {
     analyzer.mode = "rule";
     state.engine = "rule";
@@ -256,6 +219,7 @@ function stopRenderLoop() {
 
 function runPreviewLoop() {
   stopRenderLoop();
+  const inferIntervalMs = 1000 / DEVICE.maxInferFps;
 
   const tick = (timestamp) => {
     if (!state.hasCamera) {
@@ -264,21 +228,24 @@ function runPreviewLoop() {
     }
 
     if (analyzer.mode === "mediapipe" && analyzer.landmarker && els.camera.readyState >= 2) {
-      try {
-        const result = analyzer.landmarker.detectForVideo(els.camera, timestamp);
-        const landmarks = result.faceLandmarks?.[0] || null;
-        state.latestLandmarks = landmarks;
-        state.latestBlendshapes = result.faceBlendshapes?.[0] || null;
-        state.latestFaceCount = result.faceLandmarks?.length || 0;
-        if (landmarks) {
-          drawLandmarksOverlay(landmarks);
-        } else {
+      const shouldInfer = timestamp - state.lastInferTs >= inferIntervalMs;
+      if (shouldInfer) {
+        try {
+          const result = analyzer.landmarker.detectForVideo(els.camera, timestamp);
+          const landmarks = result.faceLandmarks?.[0] || null;
+          state.latestLandmarks = landmarks;
+          state.latestBlendshapes = result.faceBlendshapes?.[0] || null;
+          state.lastInferTs = timestamp;
+          if (landmarks) {
+            drawLandmarksOverlay(landmarks);
+          } else {
+            clearOverlay();
+          }
+        } catch (err) {
+          state.latestLandmarks = null;
           clearOverlay();
+          console.warn("실시간 추론 중 오류가 발생했습니다.", err);
         }
-      } catch (err) {
-        state.latestLandmarks = null;
-        clearOverlay();
-        console.warn("실시간 추론 중 오류가 발생했습니다.", err);
       }
     } else {
       clearOverlay();
@@ -315,8 +282,9 @@ async function startCamera() {
     const constraints = {
       video: {
         facingMode: "user",
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: DEVICE.videoWidthIdeal },
+        height: { ideal: DEVICE.videoHeightIdeal },
+        frameRate: { ideal: DEVICE.maxInferFps + 4, max: DEVICE.name === "mobile" ? 24 : 30 },
       },
       audio: false,
     };
@@ -324,13 +292,14 @@ async function startCamera() {
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     state.stream = stream;
     state.hasCamera = true;
+    state.lastInferTs = 0;
     els.camera.srcObject = stream;
     await waitForVideoReady();
     runPreviewLoop();
 
     els.overlay.style.display = "none";
     els.analyzeBtn.disabled = false;
-    setStatus("카메라 준비 완료. 결과 보기 버튼을 눌러주세요.");
+    setStatus(`카메라 준비 완료 (${DEVICE.name} 최적화). 결과 보기 버튼을 눌러주세요.`);
   } catch (err) {
     state.hasCamera = false;
     stopRenderLoop();
@@ -358,7 +327,6 @@ function stopCamera() {
   state.hasCamera = false;
   state.latestLandmarks = null;
   state.latestBlendshapes = null;
-  state.latestFaceCount = 0;
 }
 
 function captureFrame() {
@@ -424,28 +392,20 @@ function getLandmarkMetrics(landmarks, frame) {
   const eyeCenterY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
   const centerX = (leftCheek.x + rightCheek.x) / 2;
 
-  const faceRatio = faceHeight > 0 ? faceWidth / faceHeight : 0;
-  const eyeRatio = faceWidth > 0 ? eyeDistance / faceWidth : 0;
-  const mouthRatio = faceWidth > 0 ? mouthWidth / faceWidth : 0;
-  const mouthOpenRatio = faceHeight > 0 ? mouthOpen / faceHeight : 0;
-  const browEyeRatio = faceHeight > 0 ? Math.abs(eyeCenterY - browCenterY) / faceHeight : 0;
-  const symmetryOffset = faceWidth > 0 ? Math.abs(noseTip.x - centerX) / faceWidth : 0;
-
   return {
     width: frame.width,
     height: frame.height,
-    faceRatio,
-    eyeRatio,
-    mouthRatio,
-    mouthOpenRatio,
-    browEyeRatio,
-    symmetryOffset,
+    faceRatio: faceHeight > 0 ? faceWidth / faceHeight : 0,
+    eyeRatio: faceWidth > 0 ? eyeDistance / faceWidth : 0,
+    mouthRatio: faceWidth > 0 ? mouthWidth / faceWidth : 0,
+    mouthOpenRatio: faceHeight > 0 ? mouthOpen / faceHeight : 0,
+    browEyeRatio: faceHeight > 0 ? Math.abs(eyeCenterY - browCenterY) / faceHeight : 0,
+    symmetryOffset: faceWidth > 0 ? Math.abs(noseTip.x - centerX) / faceWidth : 0,
   };
 }
 
 function traitsFromMediapipe(metrics, blendshapeCategory) {
-  const smileScore = blendshapeCategory?.find((item) => item.categoryName === "mouthSmileLeft")?.score || 0;
-
+  const smileScore = blendshapeCategory?.find((it) => it.categoryName === "mouthSmileLeft")?.score || 0;
   return {
     energy: clamp01(0.45 + (metrics.eyeRatio - 0.27) * 3.2 + (metrics.mouthOpenRatio - 0.03) * 5.5),
     social: clamp01(0.4 + smileScore * 0.7 + (metrics.mouthRatio - 0.33) * 2.2),
@@ -476,16 +436,15 @@ function selectResultByTraits(traits, seedNumber) {
       traits.focus * weight.focus +
       traits.calm * weight.calm +
       traits.creative * weight.creative;
-
-    const seededTieBreaker = ((seedNumber + id.length * 17) % 1000) / 100000;
-    const finalScore = score + seededTieBreaker;
+    const tieBreaker = ((seedNumber + id.length * 17) % 1000) / 100000;
+    const finalScore = score + tieBreaker;
     if (finalScore > bestScore) {
       bestScore = finalScore;
       bestId = id;
     }
   }
 
-  return RESULT_LIBRARY.find((item) => item.id === bestId) || RESULT_LIBRARY[0];
+  return RESULT_LIBRARY.find((x) => x.id === bestId) || RESULT_LIBRARY[0];
 }
 
 function buildResultHTML(result, analysis) {
@@ -536,22 +495,13 @@ function analyzeWithMediapipeFromLatestFrame() {
   const metrics = getLandmarkMetrics(state.latestLandmarks, frame);
   const blendshapeCategory = state.latestBlendshapes?.categories;
   const traits = traitsFromMediapipe(metrics, blendshapeCategory);
-
-  return {
-    mode: "mediapipe",
-    metrics,
-    traits,
-  };
+  return { mode: "mediapipe", metrics, traits };
 }
 
 function analyzeWithRuleFallback() {
   const metrics = getPixelMetrics();
   const traits = traitsFromPixels(metrics);
-  return {
-    mode: "rule",
-    metrics,
-    traits,
-  };
+  return { mode: "rule", metrics, traits };
 }
 
 function analyzeFrame() {
@@ -601,10 +551,7 @@ function attachEvents() {
   els.startBtn.addEventListener("click", startCamera);
   els.analyzeBtn.addEventListener("click", runLocalAnalysis);
   els.retryBtn.addEventListener("click", resetToCapture);
-
-  window.addEventListener("beforeunload", () => {
-    stopCamera();
-  });
+  window.addEventListener("beforeunload", stopCamera);
 }
 
 async function bootstrap() {
