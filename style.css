@@ -343,6 +343,19 @@ video {
   color: #4a3f32;
 }
 
+.result-card .debug-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.result-card .debug-details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #7c2d12;
+}
+
 @media (max-width: 720px) {
   .app-shell {
     padding: 18px 14px 40px;

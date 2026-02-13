@@ -395,20 +395,46 @@ function getLandmarkMetrics(landmarks, frame) {
   const forehead = pointAt(landmarks, 10);
   const chin = pointAt(landmarks, 152);
   const leftEyeOuter = pointAt(landmarks, 33);
+  const leftEyeInner = pointAt(landmarks, 133);
+  const leftEyeUpper = pointAt(landmarks, 159);
+  const leftEyeLower = pointAt(landmarks, 145);
   const rightEyeOuter = pointAt(landmarks, 263);
+  const rightEyeInner = pointAt(landmarks, 362);
+  const rightEyeUpper = pointAt(landmarks, 386);
+  const rightEyeLower = pointAt(landmarks, 374);
   const mouthLeft = pointAt(landmarks, 61);
   const mouthRight = pointAt(landmarks, 291);
   const mouthTop = pointAt(landmarks, 13);
   const mouthBottom = pointAt(landmarks, 14);
   const browLeft = pointAt(landmarks, 105);
   const browRight = pointAt(landmarks, 334);
+  const browInnerLeft = pointAt(landmarks, 70);
+  const browInnerRight = pointAt(landmarks, 300);
+  const browOuterLeft = pointAt(landmarks, 46);
+  const browOuterRight = pointAt(landmarks, 276);
+  const noseRoot = pointAt(landmarks, 168);
+  const noseBaseLeft = pointAt(landmarks, 129);
+  const noseBaseRight = pointAt(landmarks, 358);
+  const glabella = pointAt(landmarks, 9);
+  const midFacePoint = pointAt(landmarks, 2);
+  const jawLeft = pointAt(landmarks, 172);
+  const jawRight = pointAt(landmarks, 397);
   const noseTip = pointAt(landmarks, 1);
 
   const faceWidth = distance(leftCheek, rightCheek);
   const faceHeight = distance(forehead, chin);
   const eyeDistance = distance(leftEyeOuter, rightEyeOuter);
+  const leftEyeWidth = distance(leftEyeOuter, leftEyeInner);
+  const rightEyeWidth = distance(rightEyeOuter, rightEyeInner);
+  const leftEyeOpen = distance(leftEyeUpper, leftEyeLower);
+  const rightEyeOpen = distance(rightEyeUpper, rightEyeLower);
+  const eyeOpenness = (leftEyeOpen + rightEyeOpen) / 2;
   const mouthWidth = distance(mouthLeft, mouthRight);
   const mouthOpen = distance(mouthTop, mouthBottom);
+  const noseLength = distance(noseRoot, noseTip);
+  const noseWidth = distance(noseBaseLeft, noseBaseRight);
+  const browWidth = distance(browLeft, browRight);
+  const browSpan = (distance(browOuterLeft, browInnerLeft) + distance(browOuterRight, browInnerRight)) / 2;
   const mouthCenter = {
     x: (mouthTop.x + mouthBottom.x) / 2,
     y: (mouthTop.y + mouthBottom.y) / 2,
@@ -418,16 +444,30 @@ function getLandmarkMetrics(landmarks, frame) {
   const eyeCenterY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
   const centerX = (leftCheek.x + rightCheek.x) / 2;
   const lowerFace = distance(mouthCenter, chin);
+  const upperThird = distance(forehead, glabella);
+  const middleThird = distance(glabella, midFacePoint);
+  const lowerThird = distance(midFacePoint, chin);
+  const jawWidth = distance(jawLeft, jawRight);
 
   return {
     width: frame.width,
     height: frame.height,
     faceRatio: faceHeight > 0 ? faceWidth / faceHeight : 0,
     eyeRatio: faceWidth > 0 ? eyeDistance / faceWidth : 0,
+    eyeSizeRatio: faceWidth > 0 ? ((leftEyeWidth + rightEyeWidth) / 2) / faceWidth : 0,
+    eyeOpennessRatio: faceHeight > 0 ? eyeOpenness / faceHeight : 0,
     mouthRatio: faceWidth > 0 ? mouthWidth / faceWidth : 0,
     mouthOpenRatio: faceHeight > 0 ? mouthOpen / faceHeight : 0,
+    noseLengthRatio: faceHeight > 0 ? noseLength / faceHeight : 0,
+    noseWidthRatio: faceWidth > 0 ? noseWidth / faceWidth : 0,
+    browWidthRatio: faceWidth > 0 ? browWidth / faceWidth : 0,
+    browSpanRatio: faceWidth > 0 ? browSpan / faceWidth : 0,
     lowerFaceRatio: faceHeight > 0 ? lowerFace / faceHeight : 0,
     browEyeRatio: faceHeight > 0 ? Math.abs(eyeCenterY - browCenterY) / faceHeight : 0,
+    upperThirdRatio: faceHeight > 0 ? upperThird / faceHeight : 0,
+    middleThirdRatio: faceHeight > 0 ? middleThird / faceHeight : 0,
+    lowerThirdRatio: faceHeight > 0 ? lowerThird / faceHeight : 0,
+    jawRatio: faceWidth > 0 ? jawWidth / faceWidth : 0,
     symmetryOffset: faceWidth > 0 ? Math.abs(noseTip.x - centerX) / faceWidth : 0,
   };
 }
@@ -472,7 +512,64 @@ function buildTraditionalBasis(analysis) {
     basis.push("하정 비율이 비교적 절제된 편으로 분류되어 신중/조율 계열 문구를 우선 배치했습니다.");
   }
 
+  if (m.noseLengthRatio >= 0.34) {
+    basis.push("코 길이 비율이 긴 축으로 분류되어 중심 추진력/지속성 가중치를 높였습니다.");
+  } else {
+    basis.push("코 길이 비율이 안정 축으로 분류되어 균형 판단/안정성 가중치를 유지했습니다.");
+  }
+
+  if (m.noseWidthRatio >= 0.16) {
+    basis.push("코 폭 비율이 넓은 축으로 분류되어 실행력/현실 대응 문구를 강화했습니다.");
+  } else {
+    basis.push("코 폭 비율이 좁은 축으로 분류되어 정밀/세밀 판단 문구를 강화했습니다.");
+  }
+
+  if (m.eyeOpennessRatio >= 0.04) {
+    basis.push("눈 개방 비율이 높은 편으로 분류되어 반응 속도/활동성 해석을 상향했습니다.");
+  } else {
+    basis.push("눈 개방 비율이 안정권으로 분류되어 침착/신중 해석을 상향했습니다.");
+  }
+
+  if (m.jawRatio >= 0.7) {
+    basis.push("하관(턱선) 비율이 단단한 축으로 분류되어 결단/지속 문구를 보강했습니다.");
+  } else {
+    basis.push("하관(턱선) 비율이 유연 축으로 분류되어 조율/적응 문구를 보강했습니다.");
+  }
+
   return basis;
+}
+
+function buildFeatureReadings(analysis) {
+  if (analysis.mode !== "mediapipe") {
+    return [
+      "눈: 랜드마크 미인식",
+      "코: 랜드마크 미인식",
+      "입: 랜드마크 미인식",
+      "눈썹: 랜드마크 미인식",
+      "삼정: 보조 규칙 모드",
+      "중심축: 보조 규칙 모드",
+    ];
+  }
+
+  const m = analysis.metrics;
+  const eyeLine = m.eyeSizeRatio >= 0.165
+    ? "눈: 상대적으로 또렷한 눈매 축"
+    : "눈: 상대적으로 절제된 눈매 축";
+  const noseLine = m.noseLengthRatio >= 0.34
+    ? "코: 길이 비율 우세(중정 추진 축)"
+    : "코: 길이 비율 안정(중정 균형 축)";
+  const mouthLine = m.mouthRatio >= 0.34
+    ? "입: 표현/소통 성향이 드러나는 구순 축"
+    : "입: 절제/정돈 성향이 드러나는 구순 축";
+  const browLine = m.browEyeRatio <= 0.095
+    ? "눈썹: 눈과의 거리 안정(집중형) 축"
+    : "눈썹: 눈과의 거리 유동(확장형) 축";
+  const triLine = `삼정: 상정 ${m.upperThirdRatio.toFixed(2)} / 중정 ${m.middleThirdRatio.toFixed(2)} / 하정 ${m.lowerThirdRatio.toFixed(2)}`;
+  const axisLine = m.symmetryOffset <= 0.085
+    ? "중심축: 좌우 균형 안정 범위"
+    : "중심축: 좌우 변동 허용 범위";
+
+  return [eyeLine, noseLine, mouthLine, browLine, triLine, axisLine];
 }
 
 function buildCardSpecificBasis(resultId, analysis) {
@@ -649,7 +746,7 @@ function selectResultByTraits(traits, seedNumber) {
 
 function buildResultHTML(result, analysis) {
   const metricText = analysis.mode === "mediapipe"
-    ? `얼굴비 ${analysis.metrics.faceRatio.toFixed(2)}, 눈비율 ${analysis.metrics.eyeRatio.toFixed(2)}, 입비율 ${analysis.metrics.mouthRatio.toFixed(2)}, 대칭오프셋 ${analysis.metrics.symmetryOffset.toFixed(3)}`
+    ? `얼굴비 ${analysis.metrics.faceRatio.toFixed(2)}, 눈간격 ${analysis.metrics.eyeRatio.toFixed(2)}, 눈크기 ${analysis.metrics.eyeSizeRatio.toFixed(3)}, 코길이 ${analysis.metrics.noseLengthRatio.toFixed(3)}, 코폭 ${analysis.metrics.noseWidthRatio.toFixed(3)}, 입비율 ${analysis.metrics.mouthRatio.toFixed(2)}, 대칭오프셋 ${analysis.metrics.symmetryOffset.toFixed(3)}`
     : `평균 밝기 ${analysis.metrics.avgLuma.toFixed(1)}, 색상 밸런스 ${analysis.metrics.colorBalance.toFixed(1)}`;
 
   const modeText = analysis.mode === "mediapipe"
@@ -659,6 +756,9 @@ function buildResultHTML(result, analysis) {
   const traitsText = `에너지 ${Math.round(analysis.traits.energy * 100)} / 사교성 ${Math.round(analysis.traits.social * 100)} / 집중 ${Math.round(analysis.traits.focus * 100)} / 안정 ${Math.round(analysis.traits.calm * 100)} / 창의 ${Math.round(analysis.traits.creative * 100)}`;
   const basisText = buildTraditionalBasis(analysis).join("<br>");
   const specificBasisText = buildCardSpecificBasis(result.id, analysis).join("<br>");
+  const featureReadings = buildFeatureReadings(analysis)
+    .map((line) => `<p>${line}</p>`)
+    .join("");
   const expertReportText = buildExpertReport(result, analysis)
     .map((line) => `<p>${line}</p>`)
     .join("");
@@ -668,15 +768,23 @@ function buildResultHTML(result, analysis) {
     <p class="tone">${result.tone}</p>
     <p>${result.description}</p>
     <p class="tips">${result.tips}</p>
-    <p class="tips">분석 모드: ${modeText}</p>
-    <p class="tips">특성 벡터: ${traitsText}</p>
-    <p class="tips">측정 정보: ${metricText}</p>
-    <p class="tips">해석 기준(오락용):<br>${basisText}</p>
-    <p class="tips">카드 전용 해석:<br>${specificBasisText}</p>
-    <section class="expert-report">
-      <h4>전문가 해설 리포트</h4>
-      ${expertReportText}
-    </section>
+    <p class="tips">오락용 해석 결과이며, 실제 성격/능력/적합성 판단 용도로 사용하지 마세요.</p>
+    <details class="debug-details">
+      <summary>분석 근거 보기 (개발용)</summary>
+      <p class="tips">분석 모드: ${modeText}</p>
+      <p class="tips">특성 벡터: ${traitsText}</p>
+      <p class="tips">측정 정보: ${metricText}</p>
+      <section class="expert-report">
+        <h4>오관/삼정 항목</h4>
+        ${featureReadings}
+      </section>
+      <p class="tips">해석 기준(오락용):<br>${basisText}</p>
+      <p class="tips">카드 전용 해석:<br>${specificBasisText}</p>
+      <section class="expert-report">
+        <h4>전문가 해설 리포트</h4>
+        ${expertReportText}
+      </section>
+    </details>
   `;
 }
 
