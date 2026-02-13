@@ -273,15 +273,50 @@ function drawLandmarksOverlay(landmarks, guideState) {
   ctx.clearRect(0, 0, width, height);
 
   const guideCenterX = width * 0.5;
-  const guideCenterY = height * 0.52;
-  const guideRx = width * 0.2;
-  const guideRy = height * 0.34;
+  const guideCenterY = height * 0.525;
+  const guideHalfW = width * 0.23;
+  const guideHalfH = height * 0.285;
   const guideReady = Boolean(guideState?.ok);
 
   ctx.strokeStyle = guideReady ? "rgba(16, 185, 129, 0.95)" : "rgba(251, 146, 60, 0.95)";
   ctx.lineWidth = Math.max(2, width / 220);
+  ctx.fillStyle = guideReady ? "rgba(16, 185, 129, 0.08)" : "rgba(251, 146, 60, 0.07)";
   ctx.beginPath();
-  ctx.ellipse(guideCenterX, guideCenterY, guideRx, guideRy, 0, 0, Math.PI * 2);
+  ctx.moveTo(guideCenterX, guideCenterY - guideHalfH);
+  ctx.bezierCurveTo(
+    guideCenterX + guideHalfW * 0.72,
+    guideCenterY - guideHalfH,
+    guideCenterX + guideHalfW,
+    guideCenterY - guideHalfH * 0.38,
+    guideCenterX + guideHalfW,
+    guideCenterY + guideHalfH * 0.14,
+  );
+  ctx.bezierCurveTo(
+    guideCenterX + guideHalfW * 0.95,
+    guideCenterY + guideHalfH * 0.62,
+    guideCenterX + guideHalfW * 0.36,
+    guideCenterY + guideHalfH * 0.98,
+    guideCenterX,
+    guideCenterY + guideHalfH,
+  );
+  ctx.bezierCurveTo(
+    guideCenterX - guideHalfW * 0.36,
+    guideCenterY + guideHalfH * 0.98,
+    guideCenterX - guideHalfW * 0.95,
+    guideCenterY + guideHalfH * 0.62,
+    guideCenterX - guideHalfW,
+    guideCenterY + guideHalfH * 0.14,
+  );
+  ctx.bezierCurveTo(
+    guideCenterX - guideHalfW,
+    guideCenterY - guideHalfH * 0.38,
+    guideCenterX - guideHalfW * 0.72,
+    guideCenterY - guideHalfH,
+    guideCenterX,
+    guideCenterY - guideHalfH,
+  );
+  ctx.closePath();
+  ctx.fill();
   ctx.stroke();
 
   ctx.strokeStyle = "rgba(16, 185, 129, 0.9)";
