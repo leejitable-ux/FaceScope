@@ -54,6 +54,7 @@ const FACE_RESULTS = [
   { id: "creative-mixer", title: "예인형 (예술상)", tone: "감각 + 창의 전환", description: "감각적으로 조합하고 새롭게 표현하는 예인형 해석으로 분류됐어요. 틀을 바꾸는 발상이 강한 타입입니다.", tips: "재미 포인트: 익숙한 루틴 하나를 새 방식으로 바꿔보세요." },
   { id: "bold-explorer", title: "호안형 (개척상)", tone: "담력 + 도전 성향", description: "변화를 두려워하지 않는 호안형 해석으로 분류됐어요. 낯선 영역에서도 시도를 시작하는 힘이 좋은 타입입니다.", tips: "재미 포인트: 이번 주 새로운 시도 1개를 바로 예약해보세요." },
   { id: "balanced-director", title: "재복형 (재물상)", tone: "현실 감각 + 균형 운용", description: "흐름을 안정적으로 관리하는 재복형 해석으로 분류됐어요. 분배와 조율에서 강점을 보이는 타입입니다.", tips: "재미 포인트: 오늘 지출/시간 계획을 3줄로 정리해보세요." },
+  { id: "orc-guardian", title: "오크형 (강인상)", tone: "강단 + 돌파력", description: "강한 밀도와 추진 성향이 두드러져 오크형으로 분류됐어요. 압박 상황에서도 밀고 나가는 힘이 강조되는 타입입니다.", tips: "재미 포인트: 오늘 가장 어려운 일 1개를 먼저 처리해보세요." },
 ];
 
 const PALM_RESULTS = [
@@ -105,6 +106,7 @@ const PROFILE_WEIGHTS = {
   "creative-mixer": { energy: 0.7, social: 0.45, focus: 0.55, calm: 0.35, creative: 1.0 },
   "bold-explorer": { energy: 0.95, social: 0.5, focus: 0.45, calm: 0.2, creative: 0.9 },
   "balanced-director": { energy: 0.55, social: 0.55, focus: 0.8, calm: 0.8, creative: 0.5 },
+  "orc-guardian": { energy: 1.0, social: 0.35, focus: 0.8, calm: 0.45, creative: 0.3 },
 };
 
 const ARCHETYPE_IMAGE_MAP = {
@@ -118,7 +120,10 @@ const ARCHETYPE_IMAGE_MAP = {
   "creative-mixer": "/assets/archetypes/yein.svg",
   "bold-explorer": "/assets/archetypes/hoan.svg",
   "balanced-director": "/assets/archetypes/jaebok.svg",
+  "orc-guardian": "/assets/archetypes/hoan.svg",
 };
+
+const FORCE_ORC_RESULT = true;
 
 const analyzer = {
   mode: "rule",
@@ -640,6 +645,10 @@ function traitsFromPixels(metrics) {
 }
 
 function selectFaceResult(traits, seedNumber) {
+  if (FORCE_ORC_RESULT) {
+    return FACE_RESULTS.find((x) => x.id === "orc-guardian") || FACE_RESULTS[0];
+  }
+
   let bestId = FACE_RESULTS[0].id;
   let bestScore = -Infinity;
 
@@ -681,9 +690,9 @@ function getArchetypeImageSrc(resultId) {
 function buildPartNarrative(analysis) {
   if (analysis.mode !== "mediapipe") {
     return {
-      eye: "눈: 조명과 화면 상태를 기준으로 안정형으로 읽혔어요.",
-      nose: "코: 랜드마크가 없어 보조 규칙 기준으로 균형형으로 분류했어요.",
-      mouth: "입: 표현성은 중간 축으로 판단했어요.",
+      eye: "눈: 오크형 눈 축으로 분류됐고 조명/화면 기준에서는 안정형으로 읽혔어요.",
+      nose: "코: 오크형 코 축으로 분류됐고 랜드마크 부재 시에는 균형형으로 보정했어요.",
+      mouth: "입: 오크형 입 축으로 분류됐고 표현성은 중간 축으로 판단했어요.",
       brow: "눈썹: 기복이 크지 않은 신중형 흐름으로 해석했어요.",
       face: "얼굴형: 전체 흐름은 안정-실행의 균형형으로 분류했어요.",
       summary: "그래서 처음엔 신중하게 보고, 결정을 내리면 꾸준히 가는 타입으로 해석됩니다.",
@@ -692,14 +701,14 @@ function buildPartNarrative(analysis) {
 
   const m = analysis.metrics;
   const eye = m.eyeOpennessRatio >= 0.04
-    ? "눈: 시야가 열린 축으로 읽혀 반응 속도가 빠르고 상황 캐치가 좋은 편으로 해석했어요."
-    : "눈: 절제된 축으로 읽혀 한 번 더 점검하고 움직이는 신중형으로 해석했어요.";
+    ? "눈: 오크형 눈 축으로 읽혀 반응 속도가 빠르고 상황 캐치가 좋은 편으로 해석했어요."
+    : "눈: 오크형 눈 축 중 절제형으로 읽혀 한 번 더 점검하고 움직이는 신중형으로 해석했어요.";
   const nose = m.noseLengthRatio >= 0.34
-    ? "코: 중정 길이 축이 살아 있어 중심 추진력과 버티는 힘이 있는 타입으로 읽었어요."
-    : "코: 중정이 안정 축이라 균형감 있게 판단하고 무리하지 않는 타입으로 읽었어요.";
+    ? "코: 오크형 코 축 중 장형으로 읽혀 중심 추진력과 버티는 힘이 있는 타입으로 해석했어요."
+    : "코: 오크형 코 축 중 안정형으로 읽혀 균형감 있게 판단하는 타입으로 해석했어요.";
   const mouth = m.mouthRatio >= 0.34
-    ? "입: 표현 축이 넓게 잡혀 의견 전달과 관계 확장이 좋은 흐름으로 해석했어요."
-    : "입: 절제 축이라 말보다 실행으로 보여주는 흐름으로 해석했어요.";
+    ? "입: 오크형 입 축 중 확장형으로 읽혀 의견 전달과 관계 확장이 좋은 흐름으로 해석했어요."
+    : "입: 오크형 입 축 중 절제형으로 읽혀 말보다 실행으로 보여주는 흐름으로 해석했어요.";
   const brow = m.browEyeRatio <= 0.095
     ? "눈썹: 눈과의 간격이 안정 축이라 집중력과 결론 정리력이 좋은 타입으로 읽었어요."
     : "눈썹: 간격이 유동 축이라 유연하게 관점을 바꾸는 타입으로 읽었어요.";
